@@ -1,0 +1,59 @@
+---
+title: "introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  color_pal<<-c("#E69F00",
+              "#CC79A7","#56B4E9","#009E73",
+              "#F0E442","#0072B2","#D55E00",
+              "#E1BE6A","#0231A9"),
+  myColor <- colorRampPalette(c("#FFFFFF",color_pal[4]))(50),
+  library(data.table),
+library(pheatmap),
+library(tidyverse),
+library(magrittr)
+)
+```
+
+```{r setup}
+library(microSLAM)
+
+exp_metadata <- read.csv("../example_data/exp_metadata.csv")
+rownames(exp_metadata)<- exp_metadata$sample_name
+exp_genedata <- read.csv("../example_data/genepresabs.csv")
+```
+
+## Step 1 create GRM
+```{r}
+GRM <-calculate_GRM(exp_genedata)
+```
+```{r pheatmap, echo=FALSE, fig.height=6, fig.width=8}
+pheatmap(GRM,show_rownames=FALSE,show_colnames=FALSE,treeheight_row=0,treeheight_col = 0,labels_row="samples",labels_col="samples",
+                    main=paste("GRM"),border_color=NA,annotation_row = exp_metadata[,-5],color=myColor,clustering_distance_rows=as.dist(1-GRM),clustering_distance_col=as.dist(1-GRM),clustering_method="average")
+```
+
+## Step 2 fit and test tau
+
+```{r}
+glm_fit0=glm("y~age+1", data = exp_metadata, family = "binomial")
+glmm_fit=fit_tau_test(glm_fit0, GRM,species_id="test",verbose = FALSE,log_file=NA)
+tautestfit=run_tau_test(glm_fit0, GRM,n_tau=100,species_id = "test", tau0=1, phi0=1)
+pvalue=sum(tautestfit$t>=glmm_fit$t)/100
+print(paste("t value:",glmm_fit$t,"pvalue:",pvalue))
+```
+
+## Step 3 fit and test beta for each gene
+
+```{r, fig.height=6, fig.width=8}
+gene_long<-exp_genedata %>% pivot_longer(cols=starts_with("gene"),names_to ="gene_id",values_to = "gene_value") %>% as.data.frame()
+gene_test_df<-fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=TRUE)
+ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point()
+```

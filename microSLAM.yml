@@ -1,0 +1,20 @@
+name: microSLAM
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r
+  - r-proc
+  - r-optparse
+  - r-tidyverse
+  - r-logr
+  - r-plotroc
+  - r-pheatmap
+  - r-pander
+  - r-ggextra
+  - r-rcppxptrutils
+  - r-paralleldist
+  - r-ape
+  - r-devtools
+prefix: /Users/miriamgoldman/opt/miniconda3/envs/microSLAM

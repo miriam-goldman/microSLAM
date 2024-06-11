@@ -1,0 +1,74 @@
+---
+title: "demo for stats club"
+author: "Miriam Goldman"
+date: "2023-11-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(data.table)
+library(Matrix)
+library(pheatmap)
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Read in GRM and output from population structure test
+
+```{r read_in_grm, include=FALSE}
+load("/Users/miriamgoldman/Projects/micro.glmm/example_output/exp_species.model_obj.Rdata")
+color_pal<<-c("#E69F00",
+              "#CC79A7","#56B4E9","#009E73",
+              "#F0E442","#0072B2","#D55E00",
+              "#E1BE6A","#0231A9")
+annotation_col = data.frame(disease_status=paste0("group_",as.vector(glm_fit0$y)),"b"=as.vector(glmm_fit$b))
+rownames(annotation_col) =colnames(GRM)
+rownames(GRM)<-colnames(GRM)
+
+ann_colors = list(
+  disease_status = c("group_0" = color_pal[2], "group_1" = color_pal[9]),b=c(color_pal[5],"#FFFFFF",color_pal[3])
+)
+
+paletteLength <- 50
+myColor <- colorRampPalette(c("#FFFFFF",color_pal[4]))(paletteLength)
+# length(breaks) == length(paletteLength) + 1
+# use floor and ceiling to deal with even/odd length pallettelengths
+myBreaks <- c(seq(.3, .65, length.out=ceiling(paletteLength/2) + 1), 
+              seq(.66, 1, length.out=floor(paletteLength/2)))
+```
+```{r echo=FALSE}
+pheatmap(GRM,show_rownames=FALSE,show_colnames=FALSE,labels_row="samples",labels_col="samples",
+         main=paste("GRM for species",s_id),annotation_row = annotation_col,
+         annotation_col=annotation_col,annotation_colors = ann_colors,color=myColor,breaks=myBreaks)
+print(paste("In the case of this example we have a tau of ",glmm_fit$tau[2]))
+```
+
+I have set it up so the most far left cluster was a strain related to the disease while the others were assigned randomly. 
+
+This gives us a siginificant tau looking at our write up output.
+
+![](/Users/miriamgoldman/Desktop/Screen Shot 2023-11-27 at 10.52.38 AM.png){width=55%}
+
+This means we found that the population is significant which it is! So we will move on to the CNV test. 
+
+Here the CNV numbers were mostly made modeled on the real data but mostly randomly with the phenotype. 
+
+But we are going to mix in 5 genes that move with the structure (modeled from b) and 5 genes mixed in from the phenotype explicitly. 
+
+these will be genes 990-999 with 990-994 modeled from b and 995-999 are modeled from the phenotype
+
+example of modeled b copynumber
+
+![](/Users/miriamgoldman/Desktop/Screen Shot 2023-11-27 at 11.20.56 AM.png){width=55%}
+
+example of modeled pheno 
+
+![](/Users/miriamgoldman/Desktop/Screen Shot 2023-11-27 at 11.22.27 AM.png){width=55%}
+with all of the markers plotted and colored by model
+
+![](/Users/miriamgoldman/Desktop/Screen Shot 2023-11-27 at 11.45.49 AM.png){width=55%}
+
+only for those modeled
+
+we can see that those modeled from b are lower than random points this is what we want!
+
+![](/Users/miriamgoldman/Desktop/Screen Shot 2023-11-27 at 11.48.59 AM.png){width=55%}
