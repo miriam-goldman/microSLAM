@@ -1,10 +1,5 @@
 
-#' test_dir
-#' 
-#' helper function to validate directory
-#' 
-#' @param test_dir directory to test
-#' 
+
 test_dir<-function(test_dir,verbose){tryCatch({
   
   if(file_test("-d",test_dir)){
@@ -31,12 +26,7 @@ test_dir<-function(test_dir,verbose){tryCatch({
  
   return(output_directory)})}
 
-#' validate_GRM_metadata
-#' 
-#' helper function to validate GRM and metadata
-#' 
-#' @param opt input from command line
-#' 
+
 validate_GRM_metadata<-function(opt){
   verbose<-opt$verbose
   if(isTRUE(!is.na(opt$GRM))){
@@ -126,12 +116,7 @@ validate_GRM_metadata<-function(opt){
   }
 }
 
-#' validate_gene_test
-#' 
-#' helper function to validate gene test from command line
-#' 
-#' @param opt commandline arguments from gene test
-#' 
+
 validate_gene_test<-function(opt){
   
   if(isTRUE(!is.na(opt$Rdata))){

@@ -1,9 +1,4 @@
-#' validate_genes_input
-#' 
-#' helper function to validate gene input
-#' 
-#' @param opt opt
-#' 
+
 validate_genes_input<-function(opt){
   s_id=opt$species_id
   verbose=opt$verbose
@@ -181,19 +176,7 @@ validate_genes_input<-function(opt){
 
 
 
-# validate
-# global_opts = parse_input_genes(opt)
-#prep_genes_function_R(global_opts)
 
-#' prep_genes_function_R
-#' 
-#' helper function to filter snps data from midas2 and make GRM
-#' 
-#' @param gcopynumber gcopynumber
-#' @param gdepth gdepth
-#' @param depth_cutoff depth_cutoff
-#' @param samples_per_copynumber samples_per_copynumber
-#' 
 prep_genes_function_R<-function(gcopynumber,gdepth,depth_cutoff,samples_per_copynumber,
                               verbose=FALSE,make_plots=FALSE,write_csv=FALSE,output_dir=NULL,s_id="s_id",
                               pangenome_used=FALSE,centroid_prevalence_file=NULL,centroid_prevalence_cutoff=.7,genes_info=NULL,
