@@ -561,14 +561,14 @@ fit_beta = function(obj.pop.strut,
   mu.eta = family$mu.eta(eta)
   sqrtW = mu.eta/sqrt(glm_fit0$family$variance(mu))
   W1 = sqrtW^2   ##(mu*(1-mu) for binary) theses are the same
-  tauVecNew = obj.pop.strut$tau
-  X = obj.pop.strut$X
-  Sigma=gen_sp_Sigma(W1,tauVecNew,GRM)
-  obj.pop.strut$Sigma<-Sigma
-  Sigma_iX<-solve(Sigma,X)
-  obj.pop.strut$Sigma_iX<-Sigma_iX
-  Sigma_iY<-solve(Sigma,obj.pop.strut$Y)
-  obj.pop.strut$Sigma_iY<-Sigma_iY
+  #tauVecNew = obj.pop.strut$tau
+  #X = obj.pop.strut$X
+  #Sigma=gen_sp_Sigma(W1,tauVecNew,GRM)
+  #obj.pop.strut$Sigma<-Sigma
+  #Sigma_iX<-solve(Sigma,X)
+  #obj.pop.strut$Sigma_iX<-Sigma_iX
+  #Sigma_iY<-solve(Sigma,obj.pop.strut$Y)
+  #obj.pop.strut$Sigma_iY<-Sigma_iY
   sample_lookup<-data.frame(sampleID=obj.pop.strut$sampleID,index=seq(1,length(obj.pop.strut$sampleID)),y=obj.pop.strut$y)
   sample_genes<-unique(gene_df$gene_id)
   ##randomize the gene orders to be tested
@@ -599,13 +599,16 @@ fit_beta = function(obj.pop.strut,
     #mu.eta = family$mu.eta(eta)
     #sqrtW = mu.eta/sqrt(glm_fit0$family$variance(mu))
     #W=sqrtW^2#mu*(1-mu)
-    Sigma_iG = solve(obj.pop.strut$Sigma,G_tilde)
-    PG_tilde<-Sigma_iG-obj.pop.strut$Sigma_iX%*%(solve(t(obj.pop.strut$X)%*%obj.pop.strut$Sigma_iX))%*%t(obj.pop.strut$X)%*%Sigma_iG
+    #Sigma_iG = solve(obj.pop.strut$Sigma,G_tilde)
+    #PG_tilde<-Sigma_iG-obj.pop.strut$Sigma_iX%*%(solve(t(obj.pop.strut$X)%*%obj.pop.strut$Sigma_iX))%*%t(obj.pop.strut$X)%*%Sigma_iG
     Y = eta  + (obj.pop.strut$y - mu)/mu.eta
     
-    
-    t_score=t(PG_tilde)%*%(Y)/tauVecNew[1] #t_score=t(G_tilde)%*%(filtered_obj.pop.strut$y - mu)
+    #print(t(G_tilde)%*%PG_tilde)
+    #t_score=t(PG_tilde)%*%(Y)/tauVecNew[1]
+    #print(t_score)#these are the same!
+    t_score=t(G_tilde)%*%(obj.pop.strut$y - mu)
     m1 = sum(mu * G_tilde)
+    
     #qtilde=t(G_tilde)%*%filtered_obj.pop.strut$y
     var1<-sum(W1 * G_tilde^2)
     t_adj_2=(t_score^2)/var1

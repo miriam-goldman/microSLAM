@@ -43,7 +43,7 @@ jaccardFuncPtr <- cppXPtr(
 #' helper function to validate the input from command line for snps
 #' 
 #' @param opt the inputs from the command line
-#' @export
+#' 
 validate_snps_input<-function(opt){
   s_id=opt$species_id
   verbose=opt$verbose
@@ -189,7 +189,7 @@ validate_snps_input<-function(opt){
 #' @param snp_info snp_info from MIDAS2
 #' @param sample_median_depth_filter sample median depth filter
 #' @param number_of_samples_for_sites number of samples for sites
-#' @export
+#'
 prep_snps_function_R<-function(snp_freq,snp_depth,snp_info,sample_median_depth_filter,number_of_samples_for_sites,verbose=FALSE,make_plots=FALSE,pangenome_used=FALSE,centroid_prevalence_cutoff=.8,run_qp=FALSE,l=.3,u=3,a=5,start_samples,start_snps,genes_summary_used,genes_summary){
   ######## Filter Samples based on D_median_cds 
   # Compute median site depth for all protein coding genes

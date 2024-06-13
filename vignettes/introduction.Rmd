@@ -31,6 +31,7 @@ rownames(exp_metadata)<- exp_metadata$sample_name
 exp_genedata <- read.csv("../example_data/genepresabs.csv")
 ```
 
+
 ## Step 1 create GRM
 ```{r}
 GRM <-calculate_GRM(exp_genedata)
@@ -47,7 +48,7 @@ glm_fit0=glm("y~age+1", data = exp_metadata, family = "binomial")
 glmm_fit=fit_tau_test(glm_fit0, GRM,species_id="test",verbose = FALSE,log_file=NA)
 tautestfit=run_tau_test(glm_fit0, GRM,n_tau=100,species_id = "test", tau0=1, phi0=1)
 pvalue=sum(tautestfit$t>=glmm_fit$t)/100
-print(paste("t value:",glmm_fit$t,"pvalue:",pvalue))
+print(paste("tau:",glmm_fit$tau,"t value:",glmm_fit$t,"pvalue:",pvalue))
 ```
 
 ## Step 3 fit and test beta for each gene
