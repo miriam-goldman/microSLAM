@@ -1,6 +1,6 @@
 # microSLAM
 ### A R package to perform population structure leveraged association models for the microbiome.
-![alt text](https://github.com/miriam-goldman/mircoSLAM/other/main/logo.jpg?raw=true)
+![alt text](https://github.com/miriam-goldman/mircoSLAM/other/main/logo.png?raw=true)
 
 ### below is a guide showing all operative function in R
 ## Quick start guide
