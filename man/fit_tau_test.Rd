@@ -20,7 +20,9 @@ fit_tau_test(
 
 \item{GRM}{Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness}
 
-\item{tau}{vector for initial values for the variance component parameter estimates}
+\item{species_id}{for tracking species}
+
+\item{tau}{vector for initial values for the variance component parameter estimates usually c(1,1)}
 
 \item{maxiter}{maximum iterations to fit the glmm model}
 

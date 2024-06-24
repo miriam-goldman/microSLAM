@@ -26,6 +26,7 @@ getCoefficients<-function(Y, X, W, tau, GRM){
   #X (nxN) covarities and diagnosis
   # W coefficient of variation 
   # tau is the variance of the residual errors
+  # adapted from SAIGE package
   simga=gen_sp_Sigma(W,tau,GRM)# V
   Y=as.vector(Y)
   Sigma_iY=solve(simga,Y) # V^-1 Y
@@ -49,6 +50,7 @@ gen_sp_Sigma<-function(W,tau,kinship){
   ### update kinship with W and tau
   ## value vector is kin
   #kinship is an (nxn) symetric matrix
+  # adapted from SAIGE package
   kinship<-as.matrix(kinship)
   dtkin=W^-1 * (tau[1]) # inverse W 
   new_kin = kinship * tau[2]
@@ -61,6 +63,7 @@ gen_sp_Sigma<-function(W,tau,kinship){
 get_AI_score<-function(Y,X,GRM,W,tau,Sigma_iY,Sigma_iX,cov_var){
   ## get score for finding tau function from supplment of Saige paper
   ## Inputs Y, X, GRM, W, Tau, Sigma_Y, Sigma_X, cov_var
+  # adapted from SAIGE package
   Sigma=gen_sp_Sigma(W,tau,GRM)
   Sigma_iXt = t(Sigma_iX) #transpose X
   P=solve(Sigma) - Sigma_iX %*% cov_var %*% Sigma_iXt
@@ -80,6 +83,7 @@ get_AI_score<-function(Y,X,GRM,W,tau,Sigma_iY,Sigma_iX,cov_var){
 get_AI_score_quant<-function(Y,X,GRM,W,tau,Sigma_iY,Sigma_iX,cov_var){
   ## get score for finding tau function from supplment of Saige paper
   ## Inputs Y, X, GRM, W, Tau, Sigma_Y, Sigma_X, cov_var
+  # adapted from SAIGE package
   n=length(W)
   Sigma=gen_sp_Sigma(W,tau,GRM)
   Sigma_iXt = t(Sigma_iX) #transpose X
@@ -118,6 +122,7 @@ get_AI_score_quant<-function(Y,X,GRM,W,tau,Sigma_iY,Sigma_iX,cov_var){
 
 ScoreTest_NULL_Model = function(mu, y, X){
   ## score test for null model uses fitted mu, real y, and X
+  # adapted from SAIGE package
   mu2=mu*(1-mu)
   V = as.vector(mu2)
   res = as.vector(y - mu)
@@ -133,6 +138,7 @@ ScoreTest_NULL_Model = function(mu, y, X){
 }	
 
 ScoreTest_NULL_Model_quant = function(mu,tau, y, X){
+  # adapted from SAIGE package
   V = rep(1/tau[1], length(y))
   res = as.vector(y - mu)
   XV = t(X * V)
@@ -149,6 +155,7 @@ ScoreTest_NULL_Model_quant = function(mu,tau, y, X){
 
 
 fitglmmaiRPCG<-function(Yvec, Xmat,GRM,wVec,  tauVec, Sigma_iY, Sigma_iX, cov_var,tol,quant=FALSE,verbose,write_log){
+  # adapted from SAIGE package
   if(!quant){ 
     re.AI = get_AI_score(Yvec, Xmat,GRM,wVec,  tauVec, Sigma_iY, Sigma_iX, cov_var)
     score1 = re.AI$score1# this is equation 8 from paper 
@@ -200,7 +207,8 @@ fitglmmaiRPCG<-function(Yvec, Xmat,GRM,wVec,  tauVec, Sigma_iY, Sigma_iX, cov_va
 #' 
 #' @param glm_fit0 glm model. Model output with no sample relatedness accounted for
 #' @param GRM Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness
-#' @param tau vector for initial values for the variance component parameter estimates 
+#' @param species_id for tracking species
+#' @param tau vector for initial values for the variance component parameter estimates usually c(1,1)
 #' @param maxiter maximum iterations to fit the glmm model
 #' @param verbose whether outputting messages in the process of model fitting
 #' @param log_file log file to write to
@@ -208,15 +216,17 @@ fitglmmaiRPCG<-function(Yvec, Xmat,GRM,wVec,  tauVec, Sigma_iY, Sigma_iX, cov_va
 #' @export
 fit_tau_test = function(glm_fit0, GRM,species_id,tau=c(1,1),maxiter =100, verbose = TRUE,tol=.0001,log_file=NA) {
   #Fits the null generalized linear mixed model for a binary trait
+  # adapted from SAIGE package
   #Args:
   #  glm_fit0: glm model. Logistic model output (with no sample relatedness accounted for) 
   #  GRM Genetic Relatedness Matrix 
+  # Species ID of the species for record
   #  tau: vector for initial values for the variance component parameter estimates
   #  maxiter: maximum iterations to fit the glmm model
   #  verbose: whether outputting messages in the process of model fitting
   #Returns:
   #  model output for the null glmm
-  write_log=!is.na(log_file)
+  write_log=!is.na(log_file) & log_file!=FALSE
   t_begin = proc.time()
   if(verbose){
     cat("begining time ")
@@ -445,6 +455,7 @@ fit_tau_test = function(glm_fit0, GRM,species_id,tau=c(1,1),maxiter =100, verbos
 
 
 Get_Coef = function(y, X, tau, GRM,family, alpha0, eta0,  offset, verbose=FALSE,maxiter,tol.coef=tol,write_log=FALSE){
+  # adapted from SAIGE package
   mu = family$linkinv(eta0)
   mu.eta = family$mu.eta(eta0)
   Y = eta0 - offset + (y - mu)/mu.eta
@@ -549,6 +560,7 @@ fit_beta = function(obj.pop.strut,
   # gene_df is the copy number by gene 
   ## gene_df must have column for sample; column for gene_id; column for gene_value
   ## returns list of values for each gene examined
+  # adapted from SAIGE package
   list_vec<-NULL
   t_begin = proc.time()
 
@@ -571,8 +583,7 @@ fit_beta = function(obj.pop.strut,
   #obj.pop.strut$Sigma_iY<-Sigma_iY
   sample_lookup<-data.frame(sampleID=obj.pop.strut$sampleID,index=seq(1,length(obj.pop.strut$sampleID)),y=obj.pop.strut$y)
   sample_genes<-unique(gene_df$gene_id)
-  ##randomize the gene orders to be tested
-  
+
   for(k in sample_genes){
     iter=which(sample_genes==k)
     if(iter %% 1000 == 0){
@@ -705,10 +716,11 @@ run_tau_test<-function(glm_fit0,GRM,n_tau,species_id="s_id",tau0,phi0){
 
 
 
-#### taken from SPA
+
 
 Saddle_Prob<-function(q, mu, g, var1,Cutoff=2,output="P",log.p=FALSE)
 {
+  #### taken from ‘SPAtest’ with a few changes for use case
   m1<-sum(mu * g)
   var1<-sum(mu * (1-mu) * g^2)
   p1=NULL
@@ -759,10 +771,7 @@ Saddle_Prob<-function(q, mu, g, var1,Cutoff=2,output="P",log.p=FALSE)
   if(pval!=0 && pval.noadj/pval>10^3)
   {
     return(Saddle_Prob(q, mu, g,var1, Cutoff=Cutoff*2,output,log.p=log.p))
-  } else if(output=="metaspline")
-  {
-    return(list(p.value=pval, p.value.NA=pval.noadj,z_value=z_value, Is.converge=Is.converge,Score=Score,splfun=splfun,var=var1))
-  }else if(pval==0){
+   }else if(pval==0){
     return(list(p.value=pval, p.value.NA=pval.noadj,z_value=z_value, Is.converge=FALSE, Score=Score))
   } 
   else {
@@ -771,6 +780,7 @@ Saddle_Prob<-function(q, mu, g, var1,Cutoff=2,output="P",log.p=FALSE)
 }
 getroot_K1<-function(init,mu,g,q,m1,tol=.Machine$double.eps^0.25,maxiter=1000)
 {
+  #### taken from ‘SPAtest package’
   g.pos<-sum(g[which(g>0)])
   g.neg<- sum(g[which(g<0)])
   if(q>=g.pos || q<=g.neg)
@@ -823,6 +833,7 @@ getroot_K1<-function(init,mu,g,q,m1,tol=.Machine$double.eps^0.25,maxiter=1000)
 }
 
 Korg<-function(t, mu, g){
+  #### taken from ‘SPAtest’ 
   n.t<-length(t)
   out<-rep(0,n.t)
   
@@ -836,6 +847,7 @@ Korg<-function(t, mu, g){
 
 Get_Saddle_Prob<-function(zeta, mu, g, q,log.p=FALSE) 
 {
+  #### taken from ‘SPAtest package’
   k1<-Korg(zeta, mu, g)
   k2<-K2(zeta, mu, g)
 
@@ -868,6 +880,7 @@ Get_Saddle_Prob<-function(zeta, mu, g, q,log.p=FALSE)
 }
 K1_adj<-function(t, mu, g, q)
 {
+  #### taken from ‘SPAtest package’
   n.t<-length(t)	
   out<-rep(0,n.t)
   

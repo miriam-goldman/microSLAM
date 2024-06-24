@@ -1,42 +1,3 @@
-manhattanFuncPtr <- cppXPtr(
-  "double customDist(const arma::mat &A, const arma::mat &B) {
-    float dist_com=0;
-    int n_sites=0;
-    for (int i = 0; i < A.size(); i++){
-      if(A[i]>=0 & B[i] >=0){
-        dist_com += fabs(A[i]-B[i]);
-        n_sites++;
-      }
-	          }
-	          return dist_com/n_sites;
-  }", depends = c("RcppArmadillo"),rebuild = TRUE)
-alleleFuncPtr <- cppXPtr(
-  "double customDist(const arma::mat &A, const arma::mat &B) {
-    double allele_match=0;
-    int n_sites=0;
-    for (int i = 0; i < A.size(); i++){
-      if(A[i]>=0 & B[i] >=0){
-          n_sites++;
-          if(fabs(A[i]-B[i])>.6){
-            allele_match++;
-          }
-      }
-	   }
-	          return allele_match/n_sites;
-  }", depends = c("RcppArmadillo"))
-
-
-
-
-jaccardFuncPtr <- cppXPtr(
-  "double customDist(const arma::mat &A, const arma::mat &B) {
-    double num_a=arma::accu(A>=0);
-    double num_b=arma::accu(B>=0);
-    double num_both=arma::accu((B>=0 && A>=0));
-    double dist;
-    dist=1-(num_both/(num_a+num_b-num_both));
-    return dist;
-  }", depends = c("RcppArmadillo"))
 
 
 validate_snps_input<-function(opt){
@@ -179,18 +140,7 @@ validate_snps_input<-function(opt){
 prep_snps_function_R<-function(snp_freq,snp_depth,snp_info,sample_median_depth_filter,number_of_samples_for_sites,verbose=FALSE,make_plots=FALSE,pangenome_used=FALSE,centroid_prevalence_cutoff=.8,run_qp=FALSE,l=.3,u=3,a=5,start_samples,start_snps,genes_summary_used,genes_summary){
   ######## Filter Samples based on D_median_cds 
   # Compute median site depth for all protein coding genes
-  manhattanFuncPtr <- cppXPtr(
-    "double customDist(const arma::mat &A, const arma::mat &B) {
-    float dist_com=0;
-    int n_sites=0;
-    for (int i = 0; i < A.size(); i++){
-      if(A[i]>=0 & B[i] >=0){
-        dist_com += fabs(A[i]-B[i]);
-        n_sites++;
-      }
-	          }
-	          return dist_com/n_sites;
-  }", depends = c("RcppArmadillo"),rebuild = TRUE)
+  
   snp_depth <- snp_depth %>%
     filter(site_id %in% unique(snp_info$site_id))
   nsamples = ncol(snp_depth)-1
@@ -374,13 +324,8 @@ prep_snps_function_R<-function(snp_freq,snp_depth,snp_info,sample_median_depth_f
   site_df<-df_for_distance %>% select(site_id,sample_name,allele_freq) %>% pivot_wider(names_from = site_id,values_from=allele_freq)
   put(head(site_df),console = verbose)
   df_for_distance  %>%  write.table(file.path(output_dir, paste0(s_id,".snp_sample_site.tsv")), sep = "\t", quote = F,row.names=FALSE)
-  freq_mat_dist_man<-parDist(as.matrix(site_df[,-1]), method="custom", func = manhattanFuncPtr)
-  freq_mat_dist_man<-as.matrix(freq_mat_dist_man)
-  
-  dimnames(freq_mat_dist_man)<-c(site_df[,1],site_df[,1])
-  freq_mat_GRM_man<-1-freq_mat_dist_man
+  freq_mat_GRM_man<-calculate_GRM(site_df)
   freq_mat_GRM_man  %>%  write.table(file.path(output_dir, paste0(s_id,".GRM.tsv")), sep = "\t", quote = F)
-  freq_mat_GRM_man  %>%  write.table(file.path(output_dir, paste0(s_id,".distance.tsv")), sep = "\t", quote = F)
   if(make_plots){
     heatmap_file_name<-file.path(output_dir, paste0(s_id,".heatmap.pdf"))
     if(run_qp){

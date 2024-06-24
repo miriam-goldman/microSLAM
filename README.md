@@ -2,17 +2,12 @@
 ### A R package to perform population structure leveraged association models for the microbiome.
 ### below is a guide showing all operative function in R
 ## Quick start guide
-### Install Conda
-```
-conda env create -f microglmm.yml
-conda activate microglmm
-```
 ### install package in R
 ```
 library(devtools)
 install_github('miriam-goldman/microSLAM')
 ```
-### read in example data which is example output from MIDAS v3
+### read in example data which in this case is example output from MIDAS v3
 ```
 library(microSLAM)
 library(tidyverse)
