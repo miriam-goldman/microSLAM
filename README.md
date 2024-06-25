@@ -1,6 +1,6 @@
 # microSLAM
 ### An R package to perform population structure leveraged association modeling for the microbiome.
-![alt text](https://github.com/miriam-goldman/mircoSLAM/blob/main/other/logo.png)
+![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/logo.png)
 
 ### Below is a guide showing all operative functionality in R.
 ## Quick start guide
@@ -23,7 +23,7 @@ exp_genedata = read.csv("../example_data/genepresabs.csv") ### read in example g
 ```
 GRM = calculate_GRM(exp_genedata)
 ```
-![alt text](https://github.com/miriam-goldman/mircoSLAM/blob/main/other/exampleGRM.png)
+![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png)
 
 ### Step 2: tau test for population structure (strain-trait associations)
 #### fit baseline glm for starting parameters in tau test
@@ -45,7 +45,7 @@ tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
 ```
 pvalue=sum(tautestfit$t>=glmm_fit$t)/n_tau
 ```
-![alt text](https://github.com/miriam-goldman/mircoSLAM/blob/main/other/permutation.png)
+![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/permutation.png)
 
 ### Step 3 beta test for gene-trait associations
 #### transform the gene data to a long matrix to fit each gene separately
@@ -64,4 +64,4 @@ gene_test_df = fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=TRUE)
 ```
 ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point()
 ```
-![alt text](https://github.com/miriam-goldman/mircoSLAM/blob/main/other/volcano.png?raw=true)
+![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/volcano.png?raw=true)
