@@ -1,4 +1,4 @@
-"y","strain","uncor_strain","age","sample_name"
+"y","strain","uncorrelated_strain","age","sample_name"
 0,0,0,52,"sample1"
 0,0,0,45,"sample2"
 1,1,0,41,"sample3"
