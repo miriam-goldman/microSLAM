@@ -23,7 +23,7 @@ exp_genedata = read.csv("../example_data/genepresabs.csv") ### read in example g
 ```
 GRM = calculate_GRM(exp_genedata)
 ```
-![alt text](https://github.com/miriam-goldman/mircoSLAM/blob/main/other/exampleGRM.png?raw=true)
+![alt text](https://github.com/miriam-goldman/mircoSLAM/blob/main/other/exampleGRM.png)
 
 ### Step 2: tau test for population structure (strain-trait associations)
 #### fit baseline glm for starting parameters in tau test
@@ -45,7 +45,7 @@ tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
 ```
 pvalue=sum(tautestfit$t>=glmm_fit$t)/n_tau
 ```
-![alt text](https://github.com/miriam-goldman/mircoSLAM/blob/main/other/permutation.png.png?raw=true)
+![alt text](https://github.com/miriam-goldman/mircoSLAM/blob/main/other/permutation.png)
 
 ### Step 3 beta test for gene-trait associations
 #### transform the gene data to a long matrix to fit each gene separately
