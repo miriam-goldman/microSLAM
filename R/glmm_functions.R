@@ -219,7 +219,7 @@ fit_tau_test = function(glm_fit0, GRM,species_id,tau=c(1,1),maxiter =100, verbos
   # adapted from SAIGE package
   #Args:
   #  glm_fit0: glm model. Logistic model output (with no sample relatedness accounted for) 
-  #  GRM Genetic Relatedness Matrix 
+  #  GRM Genetic Relatedness Matrix  in the same sample order as glm_fit0!
   # Species ID of the species for record
   #  tau: vector for initial values for the variance component parameter estimates
   #  maxiter: maximum iterations to fit the glmm model
@@ -237,6 +237,33 @@ fit_tau_test = function(glm_fit0, GRM,species_id,tau=c(1,1),maxiter =100, verbos
     put("begining time ",console=FALSE)
     put(t_begin,console=FALSE)
   }
+  if("sample_name" %in% colnames(glm_fit0$data)){
+    if(verbose){
+      cat("\nchecking sample names of GRM and glm fit match\n")
+      
+    }
+    if(write_log){
+      put("checking sample names of GRM and glm fit match ",console=FALSE)
+    }
+    if(!all(glm_fit0$data$sample_name == rownames(GRM))){
+      stop("\nERROR! the sample names for glm and GRM do not match")
+    }else{
+      if(verbose){
+        cat("check complete")
+        
+      }
+      if(write_log){
+        put("check complete ",console=FALSE)
+      }
+    }
+  }else{
+    if(verbose){
+    cat("\nWarning! not running check on sample names ensure GRM sample order and glm fit sample order match! Will only check if data from glm has column named sample_name\n")
+    }
+    if(write_log){
+      put("Warning! not running check on sample names ensure GRM sample order and glm fit sample order match!",console=FALSE)
+    }
+      }
   y = glm_fit0$y
   n = length(y)
   X = model.matrix(glm_fit0)
@@ -267,7 +294,7 @@ fit_tau_test = function(glm_fit0, GRM,species_id,tau=c(1,1),maxiter =100, verbos
   if(write_log) put(paste(" inital tau is ", tau),console=FALSE)
   tau0=tau
   if(tau[1]<=0){
-      stop("ERROR! The first variance component parameter estimate is 0\n")
+      stop("\nERROR! The first variance component parameter estimate is 0\n")
     }
   sqrtW_0 = mu.eta/sqrt(family$variance(mu))
   W_0 = sqrtW_0^2
@@ -594,12 +621,11 @@ fit_beta = function(obj.pop.strut,
       cat("\n")
     }
     one_gene<-gene_df %>% ungroup %>% filter(gene_id==k)
-    #one_gene_indexs<-sample_lookup %>% inner_join(one_gene,by=c("sampleID"="sample_name")) %>% select(sampleID,index)
-    
-    one_gene<-one_gene %>% inner_join(sample_lookup,by=c("sample_name"="sampleID"))
+    rownames(one_gene)<-one_gene$sample_name
+    one_gene<-one_gene[sample_lookup$sampleID,]
     ## filter obj to samples present in gene copy number
     #filtered_obj.pop.strut<-filter_null_obj(obj.pop.strut,one_gene)
-    empty_mat<-matrix(0,nrow(one_gene),nrow(one_gene))
+    #empty_mat<-matrix(0,nrow(one_gene),nrow(one_gene))
    
     G0<-as.vector(one_gene$gene_value)
     G_tilde = G0  -  obj.pop.strut$obj.noK$XXVX_inv %*%  (obj.pop.strut$obj.noK$XV %*% G0) # G1 is X adjusted
@@ -627,7 +653,7 @@ fit_beta = function(obj.pop.strut,
     pval=(pchisq(t_adj_2, lower.tail = FALSE, df=1,log.p=FALSE))
     z=(qnorm(pval/2, log.p=F, lower.tail = F))
     se_beta=abs(beta)/sqrt(abs(z))
-    new_eta=beta[1,1]*G0+obj.pop.strut$b+obj.pop.strut$X %*% obj.pop.strut$coefficients 
+    #new_eta=beta[1,1]*G0+obj.pop.strut$b+obj.pop.strut$X %*% obj.pop.strut$coefficients 
     qtilde=t_score+m1
     if(SPA){
       if(var1<0){
@@ -645,7 +671,7 @@ fit_beta = function(obj.pop.strut,
    
     }else{
       #no SPA
-      list_vec=rbind(list_vec,data.frame("species_id"=obj.pop.strut$species_id,tau=obj.pop.strut$tau[2],"gene_id"=k,"cor"=cor(G0,obj.pop.strut$y),"cor_to_b"=cor(obj.pop.strut$b,obj.pop.strut$y),"z"=z,"var1"=var1,"beta"=beta,"se beta"=se_beta,"pvalue"=pval,
+      list_vec=rbind(list_vec,data.frame("species_id"=obj.pop.strut$species_id,tau=obj.pop.strut$tau[2],"gene_id"=k,"cor"=cor(G0,obj.pop.strut$y),"cor_to_b"=cor(as.numeric(obj.pop.strut$b),G0),"z"=z,"var1"=var1,"beta"=beta,"se beta"=se_beta,"pvalue"=pval,
                                          "t_adj"=t_adj_2,"num_control"=sum(obj.pop.strut$y==0),
                                          "num_total"=length(G0)))
       
@@ -680,7 +706,7 @@ simulate_tau_inner<-function(glm_fit0,GRM,species_id="s_id",tau0,phi0){
   data.new<-glm_fit0$data
   formulate_to_fit<-glm_fit0$formula
   data.new_shuffled<-data.new[sample(1:nrow(data.new),nrow(data.new)),]
-
+  data.new_shuffled$sample_name=rownames(GRM)
   fit_logistic = glm(formulate_to_fit, data = data.new_shuffled, family = family_to_fit)
   fit_glmm_snp<-tryCatch(fit_tau_test(fit_logistic,GRM,tau=c(phi0,tau0),verbose = FALSE,species_id=species_id, log_file =NA),error=function(e) e)
   if(!is.na(fit_glmm_snp$t)){
