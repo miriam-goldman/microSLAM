@@ -61,7 +61,7 @@ tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
 ```
 pvalue=sum(tautestfit$t>=glmm_fit$t)/n_tau
 ```
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/permutation.png)
+![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png)
 
 ### Step 3 beta test for gene-trait associations
 #### transform the gene data to a long matrix to fit each gene separately
