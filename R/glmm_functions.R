@@ -570,9 +570,8 @@ fit_beta = function(pop.struct.glmm,
       cat(t_now - t_begin)
       cat("\n")
     }
-    one_gene = gene_df %>%
-      ungroup() %>%
-      filter(gene_id == k)
+    one_gene = gene_df[which(gene_df$gene_id == k),] %>%
+      ungroup() 
     rownames(one_gene) = one_gene$sample_name
     one_gene = one_gene[sample_lookup$sample_names, ]
     G0 = as.vector(one_gene$gene_value)
