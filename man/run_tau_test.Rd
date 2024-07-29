@@ -4,12 +4,12 @@
 \alias{run_tau_test}
 \title{run_tau_test}
 \usage{
-run_tau_test(glm_fit0, GRM, n_tau, species_id = "s_id", tau0, phi0)
+run_tau_test(glm.fit0, grm, n_tau, species_id = "s_id", tau0, phi0, seed = 1)
 }
 \arguments{
-\item{glm_fit0}{glm model. Model output with no sample relatedness accounted for}
+\item{glm.fit0}{glm model. Model output with no sample relatedness accounted for}
 
-\item{GRM}{Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness}
+\item{grm}{Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness}
 
 \item{n_tau}{number of tau to simulate}
 

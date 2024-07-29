@@ -5,10 +5,11 @@
 \title{fit_tau_test}
 \usage{
 fit_tau_test(
-  glm_fit0,
-  GRM,
+  glm.fit0,
+  grm,
   species_id,
-  tau = c(1, 1),
+  tau0 = 1,
+  phi0 = 1,
   maxiter = 100,
   verbose = TRUE,
   tol = 1e-04,
@@ -16,13 +17,15 @@ fit_tau_test(
 )
 }
 \arguments{
-\item{glm_fit0}{glm model. Model output with no sample relatedness accounted for}
+\item{glm.fit0}{glm model. Model output with no sample relatedness accounted for}
 
-\item{GRM}{Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness}
+\item{grm}{Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness}
 
 \item{species_id}{for tracking species}
 
-\item{tau}{vector for initial values for the variance component parameter estimates usually c(1,1)}
+\item{tau0}{inital tau estimate}
+
+\item{phi0}{inital phi estimate}
 
 \item{maxiter}{maximum iterations to fit the glmm model}
 

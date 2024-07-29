@@ -39,7 +39,7 @@ exp_genedata = read.csv("../example_data/genepresabs.csv")
 ### calculate the GRM (1-hamming distance between each sample) from gene data a samples by genes matrix
 ```{r}
 
-GRM =calculate_GRM(exp_genedata)
+GRM =calculate_grm(exp_genedata)
 ```
 
 ### GRM visualization 
