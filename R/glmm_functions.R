@@ -35,8 +35,9 @@ get_coef_inner = function(Y, X, W, var_vec, grm) {
   epsilon = var_vec[1] * (t(sigmai_Y) - t(sigmai_X %*% alpha)) / as.vector(W) # phi to act on W
   eta = as.vector(Y - epsilon) # Y-var_vec \sigma (Y-X\alpha)
   b = eta - X %*% alpha
-  re = list("sigmai_Y" = sigmai_Y, "sigmai_X" = sigmai_X, "cov_var" = cov_var, "alpha" = alpha, "eta" = eta, "b" = b, "epsilon" = epsilon)
-}
+  coef_list = list("sigmai_Y" = sigmai_Y, "sigmai_X" = sigmai_X, "cov_var" = cov_var, "alpha" = alpha, "eta" = eta, "b" = b, "epsilon" = epsilon)
+  return(coef_list)
+  }
 gen_sigma = function(W, var_vec, grm) {
   ### update grm with W and var_vec
   ## value vector is kin
@@ -122,8 +123,8 @@ for_beta_bin = function(mu, y, X) {
   XXVX_inv = X %*% XVX_inv
   XVX_inv_XV = XXVX_inv * V
   S_a = colSums(X * res)
-  re = list(XV = XV, XVX = XVX, XXVX_inv = XXVX_inv, XVX_inv = XVX_inv, S_a = S_a, XVX_inv_XV = XVX_inv_XV, V = V)
-  return(re)
+  for_beta = list(XV = XV, XVX = XVX, XXVX_inv = XXVX_inv, XVX_inv = XVX_inv, S_a = S_a, XVX_inv_XV = XVX_inv_XV, V = V)
+  return(for_beta)
 }
 
 for_beta_quant = function(mu, var_vec, y, X) {
@@ -141,8 +142,8 @@ for_beta_quant = function(mu, var_vec, y, X) {
   XXVX_inv = X %*% XVX_inv
   XVX_inv_XV = XXVX_inv * V
   S_a = colSums(X * res)
-  re = list(XV = XV, XVX = XVX, XXVX_inv = XXVX_inv, XVX_inv = XVX_inv, S_a = S_a, XVX_inv_XV = XVX_inv_XV, V = V)
-  return(re)
+  for_beta = list(XV = XV, XVX = XVX, XXVX_inv = XXVX_inv, XVX_inv = XVX_inv, S_a = S_a, XVX_inv_XV = XVX_inv_XV, V = V)
+  return(for_beta)
 }
 
 
@@ -401,7 +402,7 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
   } else {
     fit.final = get_AI_score(alpha.obj$Y, X, grm, alpha.obj$W, var_vec, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
 
-    var_vec[2] = max(0, as.numeric(var_vec0[2] + var_vec0[2]^2 * ((fit.final$YPAPY - fit.final$trace_P_grm)) / n)) # tau + Dtau dumb way
+    var_vec[2] = max(0, as.numeric(var_vec0[2] + var_vec0[2]^2 * ((fit.final$YPAPY - fit.final$trace_P_grm)) / n)) # tau + Dtau 
   }
   names(var_vec) = c("phi", "tau")
   cov_var = alpha.obj$cov_var
@@ -453,7 +454,7 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
   glmm_result = list(
     tau = var_vec[2],
     var_vec = var_vec,
-    coefficients = alpha, b = alpha.obj$b, t = sum(alpha.obj$b^2),
+    coefficients = alpha, b = alpha.obj$b, t = sum(alpha.obj$b^2)/length(sample_ids),
     linear_predictors = eta, linear_model = Xorig %*% alpha + alpha.obj$b,
     fitted_values = mu, var_mu = mu2, Y = Y, residuals = res,
     cov_var = cov_var, converged = converged,
@@ -642,7 +643,7 @@ simulate_tau_inner = function(glm.fit0, grm, species_id = "s_id", tau0, phi0) {
   refit0 = glm(formulate_to_fit, data = data_new_shuffled, family = family_to_fit)
   fit.glmm = tryCatch(fit_tau_test(refit0, grm, tau0 = tau0, phi0 = phi0, verbose = FALSE, species_id = species_id, log_file = NA), error = function(e) e)
   if (!is.na(fit.glmm$t)) {
-    t = sum(fit.glmm$b^2, na.rm = TRUE)
+    t = sum(fit.glmm$b^2, na.rm = TRUE)/length(fit.glmm$sample_names)
     tau = fit.glmm$var_vec[2]
   } else {
     print("error")
