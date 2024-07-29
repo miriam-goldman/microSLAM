@@ -21,7 +21,7 @@ exp_genedata = read.csv("../example_data/genepresabs.csv") ### read in example g
 ### Step 1 calculate Genetic Relatedness Matrix GRM or make your own
 #### calculate the GRM (1-hamming distance between each sample) from gene data a samples by genes matrix
 ```
-GRM = calculate_GRM(exp_genedata)
+GRM = calculate_grm(exp_genedata)
 ```
 ![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png)
 
@@ -35,7 +35,23 @@ glm_fit0=glm("y~age+1", data = exp_metadata, family = "binomial")
 #### fit tau test using baseline glm and GRM calculated above
 ```
 glmm_fit=fit_tau_test(glm_fit0, GRM,species_id="test",verbose = FALSE,log_file=NA)
+summary(glmm_fit)
 ```
+```
+Species ID:  test
+Formula:  y~age+1+b
+family:  binomial logit
+Fixed-effect covariates estimates:
+ (Intercept) age
+ -0.287 0.005
+Converged:  TRUE
+Number of iterations: 5
+Tau:  2.354
+Phi:  1 if logit or binomail should be 1
+T value of tau: 0.624
+Number of Samples: 100
+```
+
 
 #### test the significance of the tau that was fit
 ```
@@ -65,3 +81,26 @@ gene_test_df = fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=TRUE)
 ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point()
 ```
 ![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/volcano.png?raw=true)
+
+
+#### example output dataframe
+
+![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/betadf.png?raw=true)
+Columns are:
+```
+species_id: the id of the bacterial species run
+tau: estimate for tau variance variable
+gene_id: gene id for gene run
+cor: correlation between the y variable and the gene data for that gene
+cor_to_b: correlation between the random b variable and the gene data for that gene
+z: z value estimated for gene from GLMM
+var1: variance estimated for gene from GLMM
+beta: beta estimate for gene from GLMM
+se_beta: standard error for beta estimated from GLMM
+t_adj: t value adjusted estimated from GLMM
+SPA_pvalue: saddle point adjusted pvalue from GLMM
+spa_score: saddle point adjusted t score from GLMM
+SPA_zvalue:  saddle point adjusted z value from GLMM
+pvalue_noadj: pvalue not adjusted from saddle point approximation
+converged: did the spa algrothim converge or not
+```
