@@ -66,7 +66,7 @@ summary(glmm_fit)
 
 ### test the significance of the tau that was fit
 ```{r}
-tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
+tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1,seed=63)
 ```
 
 ### calculate the pvalue from the permutation test ran on tau

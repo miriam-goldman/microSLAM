@@ -348,12 +348,10 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
     if (verbose) {
       cat(paste("\nchange in tau", abs(tau - tau0) / (abs(tau) + abs(tau0) + tol)))
       cat("\ntau: ", tau, "\n")
-      cat("\ntau0: ", tau0, "\n")
     }
     if (write_log) {
       put(paste("change in tau", abs(tau - tau0) / (abs(tau) + abs(tau0) + tol)), console = FALSE)
       put(paste("tau: ", tau), console = FALSE)
-      put(paste("tau0: ", tau0), console = FALSE)
     }
     if (var_vec[1] <= 0) {
       stop("\nERROR! The first variance component parameter estimate is 0\n")
@@ -668,7 +666,8 @@ simulate_tau_inner = function(glm.fit0, grm, species_id = "s_id", tau0, phi0) {
 #' @param phi0 starting phi
 #' @return df of values of T for tau for different runs
 #' @export
-run_tau_test = function(glm.fit0, grm, n_tau, species_id = "s_id", tau0, phi0) {
+run_tau_test = function(glm.fit0, grm, n_tau, species_id = "s_id", tau0, phi0, seed=1) {
+  set.seed(seed)
   list_of_tau = lapply(seq(1, n_tau), function(x) simulate_tau_inner(glm.fit0, grm, species_id = species_id, tau0, phi0))
   df_of_tau = do.call(rbind, list_of_tau)
   return(df_of_tau)
