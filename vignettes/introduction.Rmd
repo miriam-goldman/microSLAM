@@ -19,7 +19,9 @@ knitr::opts_chunk$set(
 library(data.table),
 library(pheatmap),
 library(tidyverse),
-library(magrittr)
+library(magrittr),
+ library(Matrix),
+library(pROC)
 )
 ```
 
@@ -58,9 +60,13 @@ glm_fit0=glm("y~age+1", data = exp_metadata, family = "binomial")
 ```{r}
 glmm_fit=fit_tau_test(glm_fit0, GRM,species_id="test",verbose = TRUE,log_file=NA)
 ```
+```{r}
+summary(glmm_fit)
+```
+
 ### test the significance of the tau that was fit
 ```{r}
-tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
+tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1,seed=63)
 ```
 
 ### calculate the pvalue from the permutation test ran on tau
@@ -69,8 +75,8 @@ pvalue=sum(tautestfit$t>=glmm_fit$t)/n_tau
 ```
 
 ```{r echo=FALSE}
-print(paste("tau value:",glmm_fit$tau[2]))
-print(paste("t value:",glmm_fit$t,"pvalue:",pvalue))
+print(paste("tau value:",round(glmm_fit$tau,2)))
+print(paste("t value:",round(glmm_fit$t,3),"pvalue:",round(pvalue,3)))
 ```
 ```{r permutations, echo=FALSE, fig.height=6, fig.width=8}
 ggplot(tautestfit,aes(t))+geom_histogram(bins = 30)+geom_vline(xintercept = glmm_fit$t,color ="red")+theme_minimal(base_size = 16)
@@ -90,7 +96,7 @@ gene_long=exp_genedata %>%
 
 ### fit a beta for each gene adjusting for the population structure 
 ```{r}
-gene_test_df=fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=FALSE)
+gene_test_df=fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=TRUE)
 ```
 
 ### plot a simple volcano plot of the results
