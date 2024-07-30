@@ -6,7 +6,7 @@
 #' @param gene_matrix must have first column as sample names and other columns as gene names
 #' @return grm
 #' @export
-calculate_grm = function(gene_matrix) {
+calculate_grm <- function(gene_matrix) {
   freq_mat_dist_man = parDist(as.matrix(gene_matrix[, -1]), method = "manhattan") / (ncol(gene_matrix[, -1]) - 1)
   freq_mat_dist_man = as.matrix(freq_mat_dist_man)
   freq_mat_grm_man = 1 - freq_mat_dist_man
@@ -16,7 +16,21 @@ calculate_grm = function(gene_matrix) {
   return(grm)
 }
 
-get_coef_inner = function(Y, X, W, var_vec, grm) {
+gen_sigma <- function(W, var_vec, grm) {
+  ### update grm with W and var_vec
+  ## value vector is kin
+  # grm is an (nxn) symmetric matrix
+  # adapted from SAIGE package
+  grm = as.matrix(grm)
+  dtkin = W^-1 * (var_vec[1]) 
+  new_grm = grm * var_vec[2]
+  diag_new_grm = diag(new_grm) + dtkin # update diag
+  diag(new_grm) = diag_new_grm
+  new_grm[new_grm < 1e-4] = 1e-4 #check nothing is 0
+  return(as.matrix(new_grm))
+}
+
+get_coef_inner <- function(Y, X, W, var_vec, grm) {
   # Y is working vector Y=alpha X + b
   # n number of samples
   # N number of covariates
@@ -37,22 +51,9 @@ get_coef_inner = function(Y, X, W, var_vec, grm) {
   b = eta - X %*% alpha
   coef_list = list("sigmai_Y" = sigmai_Y, "sigmai_X" = sigmai_X, "cov_var" = cov_var, "alpha" = alpha, "eta" = eta, "b" = b, "epsilon" = epsilon)
   return(coef_list)
-  }
-gen_sigma = function(W, var_vec, grm) {
-  ### update grm with W and var_vec
-  ## value vector is kin
-  # grm is an (nxn) symmetric matrix
-  # adapted from SAIGE package
-  grm = as.matrix(grm)
-  dtkin = W^-1 * (var_vec[1]) 
-  new_grm = grm * var_vec[2]
-  diag_new_grm = diag(new_grm) + dtkin # update diag
-  diag(new_grm) = diag_new_grm
-  new_grm[new_grm < 1e-4] = 1e-4 #check nothing is 0
-  return(as.matrix(new_grm))
 }
 
-get_AI_score = function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_var) {
+get_AI_score <- function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_var) {
   ## get score for finding var_vec function from supplement of Saige paper
   ## Inputs Y, X, grm, W, Tau, sigmai_Y (sigma times inverse Y), sigmai_X (sigma times inverse X), cov_var
   # adapted from SAIGE package
@@ -71,9 +72,10 @@ get_AI_score = function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_var) {
   return(list(YPAPY = YPAPY, PY = PY1, trace_P_grm = trace_P_grm, score1 = score1, AI = AI[1]))
 }
 
-get_AI_score_quant = function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_var) {
+get_AI_score_quant <- function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_var) {
   ## quanitative y verion
-  # get score for finding var_vec function from supplement of Saige paper 
+  ## get score for finding var_vec function from supplement of Saige paper 
+  ## https://static-content.springer.com/esm/art%3A10.1038%2Fs41588-018-0184-y/MediaObjects/41588_2018_184_MOESM1_ESM.pdf
   ## Inputs Y, X, grm, W, Tau, sigmai_Y, sigmai_X, cov_var
   # adapted from SAIGE package
   n = length(W)
@@ -104,10 +106,7 @@ get_AI_score_quant = function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_var
   return(list(YPAPY = YPAPY, PY = PY1, YPwPY = YPwPY, trace_P_grm = trace_P_grm, trace_PW = trace_PW, AI = AI_mat, score_vector = score_vector))
 }
 
-
-
-
-for_beta_bin = function(mu, y, X) {
+for_beta_bin <- function(mu, y, X) {
   ## score test for var_vec test used to fit beta test
   ## inputs:
   # fitted mu
@@ -127,7 +126,7 @@ for_beta_bin = function(mu, y, X) {
   return(for_beta)
 }
 
-for_beta_quant = function(mu, var_vec, y, X) {
+for_beta_quant <- function(mu, var_vec, y, X) {
   ## score test for var_vec test used to fit beta test
   ## inputs:
   # fitted mu
@@ -146,9 +145,7 @@ for_beta_quant = function(mu, var_vec, y, X) {
   return(for_beta)
 }
 
-
-
-fit_vars = function(Y_vec, X_mat, grm, w_vec, var_vec, sigmai_Y, sigmai_X, cov_var, tol, quant = FALSE, verbose, write_log) {
+fit_vars <- function(Y_vec, X_mat, grm, w_vec, var_vec, sigmai_Y, sigmai_X, cov_var, tol, quant = FALSE, verbose, write_log) {
   ## fitting process for tau and phi
   # adapted from SAIGE package
   if (!quant) {
@@ -156,9 +153,7 @@ fit_vars = function(Y_vec, X_mat, grm, w_vec, var_vec, sigmai_Y, sigmai_X, cov_v
     score1 = re.AI$score1 
     AI1 = re.AI$AI
     Dtau = score1 / AI1
-
     var_vec0 = var_vec
-
     var_vec[2] = var_vec0[2] + Dtau # update tau
     step = 1.0
     while (var_vec[2] < 0) {
@@ -181,14 +176,51 @@ fit_vars = function(Y_vec, X_mat, grm, w_vec, var_vec, sigmai_Y, sigmai_X, cov_v
     }
   }
 
-
-
-
   if (any(var_vec < tol)) {
     var_vec[which(var_vec < tol)] = 0
   }
-
   return(list("var_vec" = var_vec))
+}
+
+get_alpha <- function(y, X, var_vec, grm, family, alpha0, eta0, offset, verbose = FALSE, maxiter, tol.coef = tol, write_log = FALSE) {
+  # adapted from SAIGE package
+  mu <- family$linkinv(eta0)
+  mu_eta <- family$mu.eta(eta0)
+  Y <- eta0 - offset + (y - mu) / mu_eta
+
+  sqrt_W <- mu_eta / sqrt(family$variance(mu))
+
+  W <- sqrt_W^2
+  for (i in 1:maxiter) {
+    alpha.obj <- get_coef_inner(Y, X, W, var_vec, grm)
+
+    alpha <- as.matrix(alpha.obj$alpha)
+    eta <- as.matrix(alpha.obj$eta + offset)
+
+    if (verbose) {
+      cat("\n Tau:\n")
+      cat(var_vec)
+      cat("\n Fixed-effect coefficients:\n")
+      cat(alpha)
+    }
+    if (write_log) {
+      put(paste(" Tau:", var_vec, " Fixed-effect coefficients:", alpha), console = FALSE)
+    }
+    mu <- family$linkinv(eta)
+    mu_eta <- family$mu.eta(eta)
+
+    Y <- eta - offset + (y - mu) / mu_eta
+    sqrt_W <- mu_eta / sqrt(family$variance(mu))
+    W <- sqrt_W^2
+
+    if (max(abs(alpha - alpha0) / (abs(alpha) + abs(alpha0) + tol.coef)) < tol.coef) {
+      break
+    }
+    alpha0 <- alpha
+  }
+
+  alpha_result <- list(Y = Y, alpha = alpha, eta = eta, W = W, cov_var = alpha.obj$cov_var, sqrt_W = sqrt_W, sigmai_Y = alpha.obj$sigmai_Y, sigmai_X = alpha.obj$sigmai_X, mu = mu, eta_2 = alpha.obj$eta_2, b = alpha.obj$b)
+  return(alpha_result)
 }
 
 #' fit_tau_test
@@ -205,7 +237,7 @@ fit_vars = function(Y_vec, X_mat, grm, w_vec, var_vec, sigmai_Y, sigmai_X, cov_v
 #' @param log_file log file to write to
 #' @return model output for the baseline structure glmm
 #' @export
-fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 100, verbose = TRUE, tol = .0001, log_file = NA) {
+fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 100, verbose = TRUE, tol = .0001, log_file = NA) {
   # Fits the null generalized linear mixed model for a binary trait
   # adapted from SAIGE package
   # Args:
@@ -255,6 +287,7 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
       put("Warning! not running check on sample names ensure grm sample order and glm fit sample order match!", console = FALSE)
     }
   }
+
   y = glm.fit0$y
   n = length(y)
   X = model.matrix(glm.fit0)
@@ -272,6 +305,7 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
   alpha0 = glm.fit0$coef
   eta0 = eta
   sample_ids = colnames(grm)
+  
   ### check for quantitiative or not from glm obj
   if (family$family %in% c("poisson", "binomial")) {
     phi0 = 1
@@ -284,6 +318,7 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
   if (write_log) put(paste(" Fixed-effect coefficients: ", glm.fit0$coef), console = FALSE)
   if (verbose) cat(" inital tau is ", tau0, "\n")
   if (write_log) put(paste(" inital tau is ", tau0), console = FALSE)
+  
   var_vec0 = c(phi0, tau0) ## var_vec is a vector of phi and tau for the variance estimates for tau test
   if (var_vec0[1] <= 0) {
     stop("\nERROR! The first variance component parameter estimate is 0\n")
@@ -293,21 +328,18 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
   alpha.obj = get_alpha(y, X, var_vec0, grm, family, alpha0, eta0, offset, maxiter = maxiter, verbose = verbose, tol.coef = tol, write_log = write_log)
   var_vec=var_vec0
  
- ### update var differently if quant 
+  ### update var differently if quantative 
   if (quant) {
     re = get_AI_score_quant(alpha.obj$Y, X, grm, alpha.obj$W, var_vec0, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
     var_vec[2] = max(0, as.numeric(var_vec0[2] + var_vec0[2]^2 * (re$YPAPY - re$trace_P_grm) / n))
     var_vec[1] = max(0, as.numeric(var_vec0[1] + var_vec0[1]^2 * (re$YPwPY - re$trace_PW) / n))
   } else {
     re = get_AI_score(alpha.obj$Y, X, grm, alpha.obj$W, var_vec0, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
-
     var_vec[2] = max(0, as.numeric(var_vec0[2] + var_vec0[2]^2 * ((re$YPAPY - re$trace_P_grm)) / n)) # first fit vars
   }
 
   for (i in seq_len(maxiter)) {
-    if (verbose) {
-      cat(paste("\ni", i))
-    }
+    if (verbose) cat(paste("\ni", i))
     if (verbose) cat("\nIteration ", i, "tau is ", var_vec[2], "\n")
     if (write_log) put(paste(" Iteration ", i, "tau is: ", var_vec[2]), console = FALSE)
     alpha0 = alpha.obj$alpha
@@ -325,8 +357,8 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
       put("time to get alpha", console = FALSE)
       put(t_end_get_alpha - t_begin_alpha, console = FALSE)
     }
-    ## update tau and phi
 
+    ## update tau and phi
     fit.obj = fit_vars(alpha.obj$Y, X, grm, alpha.obj$W, var_vec, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var, tol = tol, verbose = verbose, write_log = write_log, quant = quant)
     t_end_fit_tau = proc.time()
     if (verbose) {
@@ -337,6 +369,7 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
       put("time to fit tau", console = FALSE)
       put(t_end_fit_tau - t_end_get_alpha, console = FALSE)
     }
+
     ## update all params
     tau = as.numeric(fit.obj$var_vec[2])
     var_vec = as.numeric(fit.obj$var_vec)
@@ -357,12 +390,8 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
     if (var_vec[1] <= 0) {
       stop("\nERROR! The first variance component parameter estimate is 0\n")
     }
-
-
     if (var_vec[2] == 0) break
-    var_condition = max(abs(var_vec - var_vec0) / (abs(var_vec) + abs(var_vec0) + tol)) < tol
-
-
+    var_condition = max(abs(var_vec - var_vec0) / (abs(var_vec) + abs(var_vec0) + tol)) < tol # nolint
     rss = sum(res^2)
     rss_condition = rss_0 - rss
     if (verbose) {
@@ -374,9 +403,7 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
       put(paste("rss change", rss_condition), console = FALSE)
     }
 
-    abs_condition = sum(res^2)
     if (var_condition) break
-
     if (max(var_vec) > tol^(-2)) {
       i = maxiter
       break
@@ -401,12 +428,10 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
     var_vec[1] = max(0, var_vec0[1] + var_vec0[1]^2 * (fit.final$YPwPY - fit.final$trace_PW) / n)
   } else {
     fit.final = get_AI_score(alpha.obj$Y, X, grm, alpha.obj$W, var_vec, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
-
     var_vec[2] = max(0, as.numeric(var_vec0[2] + var_vec0[2]^2 * ((fit.final$YPAPY - fit.final$trace_P_grm)) / n)) # tau + Dtau 
   }
   names(var_vec) = c("phi", "tau")
   cov_var = alpha.obj$cov_var
-
   alpha = alpha.obj$alpha
   names(alpha) = names(glm.fit0$coefficients)
   eta = alpha.obj$eta
@@ -454,7 +479,8 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
   glmm_result = list(
     tau = var_vec[2],
     var_vec = var_vec,
-    coefficients = alpha, b = alpha.obj$b, t = sum(alpha.obj$b^2)/length(sample_ids),
+    coefficients = alpha, b = alpha.obj$b, 
+    t = sum(alpha.obj$b^2)/length(sample_ids),
     linear_predictors = eta, linear_model = Xorig %*% alpha + alpha.obj$b,
     fitted_values = mu, var_mu = mu2, Y = Y, residuals = res,
     cov_var = cov_var, converged = converged,
@@ -473,55 +499,11 @@ fit_tau_test = function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 
     cat(t_end - t_begin)
     cat("\n")
   }
-
   if (write_log) {
     put("fitting the structure model took", console = FALSE)
     put(t_end - t_begin, console = FALSE)
   }
-
   return(glmm_result)
-}
-
-
-get_alpha = function(y, X, var_vec, grm, family, alpha0, eta0, offset, verbose = FALSE, maxiter, tol.coef = tol, write_log = FALSE) {
-  # adapted from SAIGE package
-  mu = family$linkinv(eta0)
-  mu_eta = family$mu.eta(eta0)
-  Y = eta0 - offset + (y - mu) / mu_eta
-
-  sqrt_W = mu_eta / sqrt(family$variance(mu))
-
-  W = sqrt_W^2
-  for (i in 1:maxiter) {
-    alpha.obj = get_coef_inner(Y, X, W, var_vec, grm)
-
-    alpha = as.matrix(alpha.obj$alpha)
-    eta = as.matrix(alpha.obj$eta + offset)
-
-    if (verbose) {
-      cat("\n Tau:\n")
-      cat(var_vec)
-      cat("\n Fixed-effect coefficients:\n")
-      cat(alpha)
-    }
-    if (write_log) {
-      put(paste(" Tau:", var_vec, " Fixed-effect coefficients:", alpha), console = FALSE)
-    }
-    mu = family$linkinv(eta)
-    mu_eta = family$mu.eta(eta)
-
-    Y = eta - offset + (y - mu) / mu_eta
-    sqrt_W = mu_eta / sqrt(family$variance(mu))
-    W = sqrt_W^2
-
-    if (max(abs(alpha - alpha0) / (abs(alpha) + abs(alpha0) + tol.coef)) < tol.coef) {
-      break
-    }
-    alpha0 = alpha
-  }
-
-  alpha_result = list(Y = Y, alpha = alpha, eta = eta, W = W, cov_var = alpha.obj$cov_var, sqrt_W = sqrt_W, sigmai_Y = alpha.obj$sigmai_Y, sigmai_X = alpha.obj$sigmai_X, mu = mu, eta_2 = alpha.obj$eta_2, b = alpha.obj$b)
-  return(alpha_result)
 }
 
 #' fit_beta
@@ -535,7 +517,7 @@ get_alpha = function(y, X, var_vec, grm, family, alpha0, eta0, offset, verbose =
 #' @param SPA whether to run Saddle point approximation for pvalues (will slow down output)
 #' @return model output for the baseline structure glmm
 #' @export
-fit_beta = function(pop.struct.glmm,
+fit_beta <- function(pop.struct.glmm,
                      glm.fit0, grm,
                      gene_df, SPA = FALSE) {
   # Args:
@@ -617,7 +599,7 @@ fit_beta = function(pop.struct.glmm,
   return(list_vec)
 }
 
-filter_pop_obj = function(pop.struct.glmm, sample_indexs) {
+filter_pop_obj <- function(pop.struct.glmm, sample_indexs) {
   pop.struct.glmm$gene_value = sample_indexs$gene_value
   pop.struct.glmm$residuals = pop.struct.glmm$residuals[sample_indexs$index]
   pop.struct.glmm$b = pop.struct.glmm$b[sample_indexs$index]
@@ -633,15 +615,14 @@ filter_pop_obj = function(pop.struct.glmm, sample_indexs) {
   return(pop.struct.glmm)
 }
 
-
-simulate_tau_inner = function(glm.fit0, grm, species_id = "s_id", tau0, phi0) {
+simulate_tau_inner <- function(glm.fit0, grm, species_id = "s_id", tau0, phi0) {
   family_to_fit = glm.fit0$family
   data_new = glm.fit0$data
   formulate_to_fit = glm.fit0$formula
   data_new_shuffled = data_new[sample(1:nrow(data_new), nrow(data_new)), ]
   data_new_shuffled$sample_name = rownames(grm)
   refit0 = glm(formulate_to_fit, data = data_new_shuffled, family = family_to_fit)
-  fit.glmm = tryCatch(fit_tau_test(refit0, grm, tau0 = tau0, phi0 = phi0, verbose = FALSE, species_id = species_id, log_file = NA), error = function(e) e)
+  fit.glmm = tryCatch(fit_tau_test(refit0, grm, tau0 = tau0, phi0 = phi0, verbose = FALSE, species_id = species_id, log_file = NA), error <- function(e) e)
   if (!is.na(fit.glmm$t)) {
     t = sum(fit.glmm$b^2, na.rm = TRUE)/length(fit.glmm$sample_names)
     tau = fit.glmm$var_vec[2]
@@ -652,7 +633,6 @@ simulate_tau_inner = function(glm.fit0, grm, species_id = "s_id", tau0, phi0) {
   }
   return(data.frame("tau" = tau, t))
 }
-
 
 #' run_tau_test
 #'
@@ -666,16 +646,14 @@ simulate_tau_inner = function(glm.fit0, grm, species_id = "s_id", tau0, phi0) {
 #' @param phi0 starting phi
 #' @return df of values of T for tau for different runs
 #' @export
-run_tau_test = function(glm.fit0, grm, n_tau, species_id = "s_id", tau0, phi0, seed=1) {
+run_tau_test <- function(glm.fit0, grm, n_tau, species_id = "s_id", tau0, phi0, seed=1) {
   set.seed(seed)
   list_of_tau = lapply(seq(1, n_tau), function(x) simulate_tau_inner(glm.fit0, grm, species_id = species_id, tau0, phi0))
   df_of_tau = do.call(rbind, list_of_tau)
   return(df_of_tau)
 }
 
-
-
-summary.pop.struct.glmm = function(object) {
+summary.pop.struct.glmm <- function(object) {
   cat("Species ID: ", object$species_id, "\n")
   cat("Formula: ", object$formula, "\n")
   cat("family: ", paste(object$trait_type[1:2]), "\n")
@@ -689,8 +667,7 @@ summary.pop.struct.glmm = function(object) {
  
 }
 
-
-saddle_prob = function(q, mu, g, var1, cutoff = 2, log.p = FALSE) {
+saddle_prob <- function(q, mu, g, var1, cutoff = 2, log.p = FALSE) {
   #### taken from ‘SPAtest’ with a few changes for use case
   m1 = sum(mu * g)
   var1 = sum(mu * (1 - mu) * g^2)
@@ -714,14 +691,14 @@ saddle_prob = function(q, mu, g, var1, cutoff = 2, log.p = FALSE) {
     out_uni1 = get_root_K1(0, mu = mu, g = g, q = q)
     out_uni2 = get_root_K1(0, mu = mu, g = g, q = qinv)
     if (out_uni1$converged == TRUE && out_uni2$converged == TRUE) {
-      p1 = tryCatch(get_saddle_prob(out_uni1$root, mu, g, q, log.p = log.p), error = function(e) {
+      p1 = tryCatch(get_saddle_prob(out_uni1$root, mu, g, q, log.p = log.p), error <- function(e) {
         if (log.p) {
           return(pval_noadj - log(2))
         } else {
           return(pval_noadj / 2)
         }
       })
-      p2 = tryCatch(get_saddle_prob(out_uni2$root, mu, g, qinv, log.p = log.p), error = function(e) {
+      p2 = tryCatch(get_saddle_prob(out_uni2$root, mu, g, qinv, log.p = log.p), error <- function(e) {
         if (log.p) {
           return(pval_noadj - log(2))
         } else {
@@ -749,7 +726,8 @@ saddle_prob = function(q, mu, g, var1, cutoff = 2, log.p = FALSE) {
     return(list(p.value = pval, pvalue_noadj = pval_noadj, z_value = z_value, converged = converged, score = score))
   }
 }
-get_root_K1 = function(init, mu, g, q, m1, tol = .0001, maxiter = 1000) {
+
+get_root_K1 <- function(init, mu, g, q, m1, tol = .0001, maxiter = 1000) {
   #### taken from ‘SPAtest package’
   g_pos = sum(g[which(g > 0)])
   g_neg = sum(g[which(g < 0)])
@@ -795,7 +773,7 @@ get_root_K1 = function(init, mu, g, q, m1, tol = .0001, maxiter = 1000) {
   }
 }
 
-Korg = function(t, mu, g) {
+Korg <- function(t, mu, g) {
   #### taken from ‘SPAtest’
   n.t = length(t)
   out = rep(0, n.t)
@@ -808,7 +786,7 @@ Korg = function(t, mu, g) {
   return(out)
 }
 
-get_saddle_prob = function(zeta, mu, g, q, log.p = FALSE) {
+get_saddle_prob <- function(zeta, mu, g, q, log.p = FALSE) {
   #### taken from ‘SPAtest package’
   k1 = Korg(zeta, mu, g)
   k2 = K2(zeta, mu, g)
@@ -842,7 +820,8 @@ get_saddle_prob = function(zeta, mu, g, q, log.p = FALSE) {
 
   return(pval)
 }
-K1_adj = function(t, mu, g, q) {
+
+K1_adj <- function(t, mu, g, q) {
   #### taken from ‘SPAtest package’
   n.t = length(t)
   out = rep(0, n.t)
@@ -855,7 +834,8 @@ K1_adj = function(t, mu, g, q) {
   }
   return(out)
 }
-K2 = function(t, mu, g) {
+
+K2 <- function(t, mu, g) {
   n.t = length(t)
   out = rep(0, n.t)
 
