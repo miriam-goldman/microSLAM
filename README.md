@@ -20,7 +20,9 @@ exp_metadata = read.csv("../example_data/exp_metadata.csv") ### read in example 
 ## metadata is a sample by different covariates and phenotype matrix
 exp_genedata = read.csv("../example_data/genepresabs.csv") ### read in example gene data
 ## gene data is a sample by gene matrix for one species
+
 head(exp_metadata)
+
   y strain uncorrelated_strain age sample_name
 1 0      0                   0  52     sample1
 2 0      0                   0  45     sample2
@@ -31,6 +33,7 @@ head(exp_metadata)
 ```
 ```
 head(exp_genedata)
+
  sample_name gene1 gene2 gene3 gene4 gene5 gene6 gene7 gene8 gene9
 1     sample1     0     1     1     1     1     0     0     0     0
 2     sample2     0     1     1     0     0     0     0     0     0
@@ -47,19 +50,19 @@ Dataframe must contain a sample_name column to generate GRM correctly. This GRM 
 GRM = calculate_grm(exp_genedata)
 ```
 #### Visualization of the GRM with the strain information used to generate it are labeled.
-This gene data was generated with a strain that is correlated to y in half of the samples and another strain or subset of semi correlated genes that are not correlated to the hypothetical phenotype of interest. We are most interested in genes that are able to explain our phenotype more than the simulated strain, in this case 3 genes were simulated to be more related to the phenotype than the strain. 
+This gene data was generated with a strain that is correlated to y in half of the samples and another strain or subset of semi correlated genes that are not correlated to the hypothetical phenotype of interest. We are most interested in genes that are able to explain our phenotype more than the simulated strain, in this case 3 genes were simulated to be more related to the phenotype than the strain.
 ![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png)
 
 ### $\tau$ test for population structure (strain-trait associations)
 #### Step 4: fit baseline glm for starting parameters in tau test, this can be done as you would do a normal glm for your data.
 
 ```
-glm_fit0=glm("y~age+1", data = exp_metadata, family = "binomial")
+glm_fit0 = glm("y~age+1", data = exp_metadata, family = "binomial")
 ```
 
 #### Step 5: fit tau test using baseline glm and GRM calculated above
 ```
-glmm_fit=fit_tau_test(glm_fit0, GRM,species_id="test",verbose = FALSE,log_file=NA)
+glmm_fit = fit_tau_test(glm_fit0, GRM,species_id="test",verbose = FALSE,log_file=NA)
 summary(glmm_fit)
 ```
 ```
@@ -72,7 +75,7 @@ Fixed-effect covariates estimates:
 Converged:  TRUE
 Number of iterations: 5
 Tau:  2.354
-Phi:  1 if logit or binomail should be 1
+Phi:  1 if logit or binomial should be 1
 T value of tau: 0.624
 Number of Samples: 100
 ```
@@ -80,11 +83,11 @@ Number of Samples: 100
 
 #### Step 6: test the significance of the tau that was fit with a permuation test
 ```
-tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
+tautestfit = run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
 ```
 ##### Calculate the pvalue from the permutation test ran on tau
 ```
-pvalue=sum(tautestfit$t>=glmm_fit$t)/n_tau
+pvalue = sum(tautestfit$t>=glmm_fit$t)/n_tau
 ```
 ![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png)
 
@@ -94,10 +97,11 @@ pvalue=sum(tautestfit$t>=glmm_fit$t)/n_tau
 #### Step 7: transform the gene data to a long matrix to fit each gene separately
 
 ```
-gene_long = exp_genedata %>% pivot_longer(cols=starts_with("gene"),
-names_to ="gene_id",
-values_to = "gene_value") %>%
-as.data.frame()
+gene_long = exp_genedata %>%
+    pivot_longer(cols=starts_with("gene"),
+    names_to = "gene_id",
+    values_to = "gene_value") %>%
+    as.data.frame()
 ```
 #### Step 8: fit a beta for each gene adjusting for the population structure
 ```  
@@ -105,12 +109,12 @@ gene_test_df = fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=TRUE)
 ```
 ##### Plot a simple volcano plot of the results, in this case genes 1, 2, and 3, have been generated as being more related to the phenotype than the simulated strain. These are colored in red.
 ```
-ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point()
+ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point(data=gene_test_df[which(gene_test_df$SPA_pvalue >= .005),], color='gray80', size=2)+geom_point(data=gene_test_df[which(gene_test_df$SPA_pvalue <= .005),], color='red', size=2)+theme_minimal()
 ```
 ![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/volcanoplotcolor.png?raw=true)
 
 
-#### example output dataframe
+#### Example output dataframe for $\beta$ test
 
 ![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/betadf.png?raw=true)
 Columns are:
