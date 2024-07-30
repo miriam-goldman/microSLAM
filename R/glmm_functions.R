@@ -323,8 +323,6 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
   if (var_vec0[1] <= 0) {
     stop("\nERROR! The first variance component parameter estimate is 0\n")
   }
-  sqrtW_0 = mu_eta / sqrt(family$variance(mu))
-  W_0 = sqrtW_0^2
   alpha.obj = get_alpha(y, X, var_vec0, grm, family, alpha0, eta0, offset, maxiter = maxiter, verbose = verbose, tol.coef = tol, write_log = write_log)
   var_vec=var_vec0
  
@@ -622,7 +620,7 @@ simulate_tau_inner <- function(glm.fit0, grm, species_id = "s_id", tau0, phi0) {
   data_new_shuffled = data_new[sample(1:nrow(data_new), nrow(data_new)), ]
   data_new_shuffled$sample_name = rownames(grm)
   refit0 = glm(formulate_to_fit, data = data_new_shuffled, family = family_to_fit)
-  fit.glmm = tryCatch(fit_tau_test(refit0, grm, tau0 = tau0, phi0 = phi0, verbose = FALSE, species_id = species_id, log_file = NA), error <- function(e) e)
+  fit.glmm = tryCatch(fit_tau_test(refit0, grm, tau0 = tau0, phi0 = phi0, verbose = FALSE, species_id = species_id, log_file = NA), error = function(e) e)
   if (!is.na(fit.glmm$t)) {
     t = sum(fit.glmm$b^2, na.rm = TRUE)/length(fit.glmm$sample_names)
     tau = fit.glmm$var_vec[2]
@@ -691,14 +689,14 @@ saddle_prob <- function(q, mu, g, var1, cutoff = 2, log.p = FALSE) {
     out_uni1 = get_root_K1(0, mu = mu, g = g, q = q)
     out_uni2 = get_root_K1(0, mu = mu, g = g, q = qinv)
     if (out_uni1$converged == TRUE && out_uni2$converged == TRUE) {
-      p1 = tryCatch(get_saddle_prob(out_uni1$root, mu, g, q, log.p = log.p), error <- function(e) {
+      p1 = tryCatch(get_saddle_prob(out_uni1$root, mu, g, q, log.p = log.p), error = function(e) {
         if (log.p) {
           return(pval_noadj - log(2))
         } else {
           return(pval_noadj / 2)
         }
       })
-      p2 = tryCatch(get_saddle_prob(out_uni2$root, mu, g, qinv, log.p = log.p), error <- function(e) {
+      p2 = tryCatch(get_saddle_prob(out_uni2$root, mu, g, qinv, log.p = log.p), error = function(e) {
         if (log.p) {
           return(pval_noadj - log(2))
         } else {
