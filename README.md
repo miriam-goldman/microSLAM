@@ -42,7 +42,7 @@ GRM = calculate_grm(exp_genedata)
 
 #### Visualization of the GRM with the strain information used to generate it are labeled.
 This gene data was generated with a strain that is correlated to y in half of the samples and another strain or subset of semi correlated genes that are not correlated to the hypothetical phenotype of interest. We are most interested in genes that are able to explain our phenotype more than the simulated strain, in this case 3 genes were simulated to be more related to the phenotype than the strain.
-<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png">
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png" width=400>
 
 ### $\tau$ test for population structure (strain-trait associations)
 Fit baseline glm for starting parameters in tau test, this can be done as you would do a normal glm for your data.
@@ -80,7 +80,7 @@ Calculate the pvalue from the permutation test ran on tau
 ```
 pvalue = sum(tautestfit$t>=glmm_fit$t)/n_tau
 ```
-<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png">
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png" with=400>
 
 In this case compared to 100 permutation of the tau test we have the most extreme example and a significant pvalue. Therefor it makes sense to use the microSLAM mixed model to find the betas for the gene-by-gene-trait associations
 
@@ -102,7 +102,7 @@ Plot a simple volcano plot of the results, in this case genes 1, 2, and 3, have 
 ```
 ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point(data=gene_test_df[which(gene_test_df$SPA_pvalue >= .005),], color='gray80', size=2)+geom_point(data=gene_test_df[which(gene_test_df$SPA_pvalue <= .005),], color='red', size=2)+theme_minimal()
 ```
-<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/volcanoplotcolor.png?raw=true">
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/volcanoplotcolor.png?raw=true" with=400>
 
 
 Example output dataframe for $\beta$ test
