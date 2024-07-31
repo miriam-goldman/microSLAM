@@ -21,9 +21,13 @@ library(pheatmap),
 library(tidyverse),
 library(magrittr),
  library(Matrix),
-library(pROC)
+library(pROC),
+library(knitr),
+library(DT)
 )
 ```
+
+
 
 ```{r setup}
 library(microSLAM)
@@ -32,8 +36,8 @@ exp_metadata = read.csv("../example_data/exp_metadata.csv")
 ### read in example metadata
 exp_genedata = read.csv("../example_data/genepresabs.csv") 
 ### read in example gene data
-head(exp_genedata)
-head(exp_metadata)
+datatable(head(exp_genedata[1:10,1:10]))
+datatable(head(exp_metadata))
 ```
 
 
@@ -42,6 +46,7 @@ head(exp_metadata)
 ```{r}
 
 GRM =calculate_grm(exp_genedata)
+datatable(round(head(GRM[1:10,1:10]),2))
 ```
 
 ### GRM visualization 
@@ -107,7 +112,10 @@ ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point(data=gene_test_df[w
 ```
 
 ```{r}
-head(gene_test_df)
+gene_test_df_vis<-gene_test_df
+gene_test_df_vis[,c(2,4:15)]<-round(gene_test_df[,c(2,4:15)],2)
+datatable(head(gene_test_df_vis[1:6,1:8]))
+datatable(head(gene_test_df_vis[1:6,9:15]))
 ```
 
 ```{r}
