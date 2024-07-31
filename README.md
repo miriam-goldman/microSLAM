@@ -21,10 +21,10 @@ Inputs are usually two dataframes:
 
 1) gene data: a dataframe containing information about the genes present within a bacterial species, filtered to those that are for instance less than 90% present across samples.
 read in example data which in this case is simulated example output from MIDAS v3. This will be a samples by genes matrix and must contain the column sample_name to indicate the sample name.
-<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/genes.png">
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/genes.png" width=400>
 
 2) a metadata matrix of samples by covarites and the phenotype of interest in this case y, sample names should match gene data or be filtered to match on a species by species basis.
-<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/metadata.png">
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/metadata.png" width=400>
 
 Example of how to import data shown below.
 ```
@@ -120,7 +120,10 @@ gene_test_df = fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=TRUE)
 Plot a simple volcano plot of the results, in this case genes 1, 2, and 3, have been generated as being more related to the phenotype than the simulated strain. These are colored in red.
 
 ```
-ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point(data = gene_test_df[ which(gene_test_df$SPA_pvalue >= .005),], color = 'gray80', size=2)+geom_point(data = gene_test_df[which(gene_test_df$SPA_pvalue <= .005),], color = 'red', size = 2)+theme_minimal()
+ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+
+ geom_point(data = gene_test_df[ which(gene_test_df$SPA_pvalue >= .005),], color = 'gray80', size=2)+
+ geom_point(data = gene_test_df[which(gene_test_df$SPA_pvalue <= .005),], color = 'red', size = 2)+
+ theme_minimal()
 ```
 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/volcanoplotcolor.png?raw=true" with=400>
