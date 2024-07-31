@@ -49,6 +49,7 @@ Example of GRM:
 
 #### Visualization of the GRM with the strain information used to generate it are labeled.
 This gene data was generated with a strain that is correlated to y in half of the samples and another strain or subset of semi correlated genes that are not correlated to the hypothetical phenotype of interest. We are most interested in genes that are able to explain our phenotype more than the simulated strain, in this case 3 genes were simulated to be more related to the phenotype than the strain.
+
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png" width=600>
 
 ### $\tau$ test for population structure (strain-trait associations)
@@ -59,10 +60,12 @@ glm_fit0 = glm("y~age+1", data = exp_metadata, family = "binomial")
 ```
 
 Fit tau test using baseline glm and GRM calculated above
+
 ```
 glmm_fit = fit_tau_test(glm_fit0, GRM,species_id = "test",verbose = FALSE,log_file = NA)
 summary(glmm_fit)
 ```
+
 ```
 Species ID:  test
 Formula:  y~age+1+b
@@ -77,21 +80,27 @@ Phi:  1 if logit or binomial should be 1
 T value of tau: 0.624
 Number of Samples: 100
 ```
+
 The outputs of this can be interpreted as the microSLAM was able to converge, the $\tau$ variable is 2.35, and we have estimated our random variable b as well as our covariates coefficients.
 
 Test the significance of the tau that was fit with a permutation test
+
 ```
 tautestfit = run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
 ```
+
 Calculate the pvalue from the permutation test ran on tau
+
 ```
 pvalue = sum(tautestfit$t >= glmm_fit$t)/n_tau
 ```
+
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png" with=400>
 
 In this case compared to 100 permutation of the tau test we have the most extreme example and a significant pvalue. Therefor it makes sense to use the microSLAM mixed model to find the betas for the gene-by-gene-trait associations
 
 ### $\beta$ test for gene-trait associations
+
 Transform the gene data to a long matrix to fit each gene separately
 
 ```
@@ -101,14 +110,19 @@ gene_long = exp_genedata %>%
     values_to = "gene_value") %>%
     as.data.frame()
 ```
+
 Fit a beta for each gene adjusting for the population structure
+
 ```  
 gene_test_df = fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=TRUE)
 ```
+
 Plot a simple volcano plot of the results, in this case genes 1, 2, and 3, have been generated as being more related to the phenotype than the simulated strain. These are colored in red.
+
 ```
 ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point(data = gene_test_df[ which(gene_test_df$SPA_pvalue >= .005),], color = 'gray80', size=2)+geom_point(data = gene_test_df[which(gene_test_df$SPA_pvalue <= .005),], color = 'red', size = 2)+theme_minimal()
 ```
+
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/volcanoplotcolor.png?raw=true" with=400>
 
 
@@ -120,6 +134,7 @@ Example output dataframe for $\beta$ test
 
 
 Columns are:
+
 ```
 species_id: the id of the bacterial species run
 tau: estimate for tau variance variable
@@ -160,6 +175,7 @@ annotation_row = exp_metadata[,-5],
 color = myColor,
 clustering_method = "average")
 ```
+
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/strainheatmap.png?raw=true">
 
 300 genes were modeled from the strain, and we are able to recover 288 of these through this cut off. These can be used to find which genes make up substrains related to the phenotype of interest.
