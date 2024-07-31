@@ -1,9 +1,9 @@
-# microSLAM
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/logo.png" width=200>
 ## Introduction
 MicroSLAM is an R package to perform population structure leveraged association modeling for the microbiome from metagenomics data. Microbiome association studies typically link host disease or other traits to summary statistics measured in metagenomics data, such as diversity or taxonomic composition. But identifying disease-associated species based on their relative abundance does not provide insight into why these microbes act as disease markers, and it overlooks cases where disease risk is related to specific strains with unique biological functions. microSLAM was developed as a mixed-effects model and an R package that performs association tests that connect host traits to the presence/absence of genes within each microbiome species, while accounting for strain genetic relatedness across hosts. Traits can be quantitative or binary (such as case/control). MicroSLAM is fit in three steps for each species. The first step estimates population structure across hosts. Step two calculates the association between population structure and the trait, enabling detection of species for which a subset of related strains confer risk. To identify specific genes whose presence/absence across diverse strains is associated with the trait, step three models the trait as a function of gene occurrence plus random effects estimated from step two. Data are taken from outputs of MIDAS 3.
- <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/logo.png" width=200> 
 
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/flowchart.png)
+
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/flowchart.png">
 
 ### Below is a guide showing all operative functionality in R.
 Install package in R
@@ -16,10 +16,10 @@ library(microSLAM)
 Inputs are usually two dataframes:
 1) gene data: a dataframe containing information about the genes present within a bacterial species, filtered to those that are for instance less than 90% present across samples.
 read in example data which in this case is simulated example output from MIDAS v3. This will be a samples by genes matrix and must contain the column sample_name to indicate the sample name.
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/genes.png)
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/genes.png">
 
 2) a metadata matrix of samples by covarites and the phenotype of interest in this case y, sample names should match gene data or be filtered to match on a species by species basis.
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/metadata.png)
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/metadata.png">
 
 Example of how to import data shown below.
 ```
@@ -38,11 +38,11 @@ From the gene matrix imported above make the GRM. This GRM represents how simila
 ```
 GRM = calculate_grm(exp_genedata)
 ```
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/GRM.png)
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/GRM.png">
 
 #### Visualization of the GRM with the strain information used to generate it are labeled.
 This gene data was generated with a strain that is correlated to y in half of the samples and another strain or subset of semi correlated genes that are not correlated to the hypothetical phenotype of interest. We are most interested in genes that are able to explain our phenotype more than the simulated strain, in this case 3 genes were simulated to be more related to the phenotype than the strain.
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png)
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png">
 
 ### $\tau$ test for population structure (strain-trait associations)
 Fit baseline glm for starting parameters in tau test, this can be done as you would do a normal glm for your data.
@@ -80,7 +80,7 @@ Calculate the pvalue from the permutation test ran on tau
 ```
 pvalue = sum(tautestfit$t>=glmm_fit$t)/n_tau
 ```
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png)
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png">
 
 In this case compared to 100 permutation of the tau test we have the most extreme example and a significant pvalue. Therefor it makes sense to use the microSLAM mixed model to find the betas for the gene-by-gene-trait associations
 
@@ -102,14 +102,14 @@ Plot a simple volcano plot of the results, in this case genes 1, 2, and 3, have 
 ```
 ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point(data=gene_test_df[which(gene_test_df$SPA_pvalue >= .005),], color='gray80', size=2)+geom_point(data=gene_test_df[which(gene_test_df$SPA_pvalue <= .005),], color='red', size=2)+theme_minimal()
 ```
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/volcanoplotcolor.png?raw=true)
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/volcanoplotcolor.png?raw=true">
 
 
 Example output dataframe for $\beta$ test
 
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/betadf1.png?raw=true)
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/betadf1.png?raw=true">
 
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/betadf2.png?raw=true)
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/betadf2.png?raw=true">
 
 
 Columns are:
@@ -141,6 +141,6 @@ straingenesvalues = exp_genedata[,straingenes$gene_id]
 pheatmap(straingenesvalues,show_rownames=FALSE,show_colnames=FALSE,treeheight_row=0,treeheight_col = 0,labels_row="samples",labels_col="samples",
                     main=paste("Strain Associated Genes"),border_color=NA,annotation_row = exp_metadata[,-5],color=myColor,clustering_method="average")
 ```
-![alt text](https://github.com/miriam-goldman/microSLAM/blob/main/other/strainheatmap.png?raw=true)
+<img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/strainheatmap.png?raw=true">
 
 300 genes were modeled from the strain, and we are able to recover 288 of these through this cut off. These can be used to find which genes make up substrains related to the phenotype of interest.
