@@ -7,8 +7,10 @@ MicroSLAM is an R package to perform population structure leveraged association 
 <p align="center">
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/Newflowchart.png" width=600>
 </p>
+
 ### Below is a guide showing all operative functionality in R.
 Install package in R
+
 ```
 library(devtools)
 install_github('miriam-goldman/microSLAM')
