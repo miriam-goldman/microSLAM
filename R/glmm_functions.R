@@ -1,4 +1,14 @@
-### functions needed to run GLMM for MWAS
+### functions needed to run mircoSLAM a GLMM for MWAS
+### Methodology and Equations for fitting REML AI for GLMM are from SAIGE Supplement 
+### doi: 10.1038/s41588-018-0184-y
+### Zhou W, Nielsen JB, Fritsche LG, Dey R, Gabrielsen ME, Wolford BN, LeFaive J,
+### VandeHaar P, Gagliano SA, Gifford A, Bastarache LA, Wei WQ, Denny JC, Lin M, 
+### Hveem K, Kang HM, Abecasis GR, Willer CJ, Lee S. 
+### Efficiently controlling for case-control imbalance 
+### and sample relatedness in large-scale genetic association studies. 
+### Nat Genet. 2018
+### SPA test and function used in those are directly adpated from SPAtest package: https://github.com/leeshawn/SPAtest
+
 #' calculate_grm
 #'
 #' calculate the genetic relateness matrix from the gene matrix
