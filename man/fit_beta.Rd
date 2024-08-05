@@ -11,14 +11,14 @@ fit_beta(pop.struct.glmm, glm.fit0, grm, gene_df, SPA = FALSE)
 
 \item{glm.fit0}{glm model. Model output with no sample relatedness accounted for}
 
-\item{grm}{Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness}
+\item{grm}{Genetic Relatedness Matrix (from calculate_grm or user) NxN matrix of sample relatedness}
 
 \item{gene_df}{long data frame with, gene_id, sample_name, and gene_value}
 
 \item{SPA}{whether to run Saddle point approximation for pvalues (will slow down output)}
 }
 \value{
-model output for the baseline structure glmm
+dataframe of beta estimates for all genes tested
 }
 \description{
 Fit a beta for each genes including the population structure model with the random effects

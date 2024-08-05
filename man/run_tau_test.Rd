@@ -13,15 +13,15 @@ run_tau_test(glm.fit0, grm, n_tau, species_id = "s_id", tau0, phi0, seed = 1)
 
 \item{n_tau}{number of tau to simulate}
 
-\item{species_id}{species id for bactrial species}
+\item{species_id}{species id for bacterial species}
 
 \item{tau0}{starting tau}
 
 \item{phi0}{starting phi}
 }
 \value{
-df of values of T for tau for different runs
+df of values of T for tau for different permutations of the covarites matrix
 }
 \description{
-take output from population structure test and test how exterme the tau is for that set of data
+take output from population structure test and test how significant the tau is for that set of data
 }
