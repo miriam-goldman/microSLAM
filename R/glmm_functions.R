@@ -7,14 +7,14 @@
 ### Efficiently controlling for case-control imbalance 
 ### and sample relatedness in large-scale genetic association studies. 
 ### Nat Genet. 2018
-### SPA test and function used in those are directly adpated from SPAtest package: https://github.com/leeshawn/SPAtest
+### SPA test and function used in those are directly adapted from SPAtest package: https://github.com/leeshawn/SPAtest
 
 #' calculate_grm
 #'
-#' calculate the genetic relateness matrix from the gene matrix
+#' calculate the genetic relatedness matrix from the gene matrix
 #'
 #' @param gene_matrix must have first column as sample names and other columns as gene names
-#' @return grm
+#' @return grm genetic relatedness matrix for tau and beta test
 #' @export
 calculate_grm <- function(gene_matrix) {
   freq_mat_dist_man = parDist(as.matrix(gene_matrix[, -1]), method = "manhattan") / (ncol(gene_matrix[, -1]) - 1)
@@ -240,12 +240,12 @@ get_alpha <- function(y, X, var_vec, grm, family, alpha0, eta0, offset, verbose 
 #' @param glm.fit0 glm model. Model output with no sample relatedness accounted for
 #' @param grm Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness
 #' @param species_id for tracking species
-#' @param tau0 inital tau estimate
-#' @param phi0 inital phi estimate
+#' @param tau0 inital tau estimate (variance on the population strucutre of genetic relatedness)
+#' @param phi0 inital phi estimate (variance on means of outputs will be 1 for logit or binonimal dispersion)
 #' @param maxiter maximum iterations to fit the glmm model
 #' @param verbose whether outputting messages in the process of model fitting
 #' @param log_file log file to write to
-#' @return model output for the baseline structure glmm
+#' @return model output for the tau test on population structure 
 #' @export
 fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter = 100, verbose = TRUE, tol = .0001, log_file = NA) {
   # Fits the null generalized linear mixed model for a binary trait
@@ -520,10 +520,10 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
 #'
 #' @param pop.struct.glmm output of fit_tau_test; GLMM of species with grm accounted for
 #' @param glm.fit0 glm model. Model output with no sample relatedness accounted for
-#' @param grm Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness
+#' @param grm Genetic Relatedness Matrix (from calculate_grm or user) NxN matrix of sample relatedness
 #' @param gene_df long data frame with, gene_id, sample_name, and gene_value
 #' @param SPA whether to run Saddle point approximation for pvalues (will slow down output)
-#' @return model output for the baseline structure glmm
+#' @return dataframe of beta estimates for all genes tested
 #' @export
 fit_beta <- function(pop.struct.glmm,
                      glm.fit0, grm,
@@ -644,15 +644,15 @@ simulate_tau_inner <- function(glm.fit0, grm, species_id = "s_id", tau0, phi0) {
 
 #' run_tau_test
 #'
-#' take output from population structure test and test how exterme the tau is for that set of data
+#' take output from population structure test and test how significant the tau is for that set of data
 #'
 #' @param glm.fit0 glm model. Model output with no sample relatedness accounted for
 #' @param grm Genetic Relatedness Matrix (from scripts or user) NxN matrix of sample relatedness
 #' @param n_tau number of tau to simulate
-#' @param species_id species id for bactrial species
+#' @param species_id species id for bacterial species
 #' @param tau0 starting tau
 #' @param phi0 starting phi
-#' @return df of values of T for tau for different runs
+#' @return df of values of T for tau for different permutations of the covarites matrix
 #' @export
 run_tau_test <- function(glm.fit0, grm, n_tau, species_id = "s_id", tau0, phi0, seed=1) {
   set.seed(seed)
