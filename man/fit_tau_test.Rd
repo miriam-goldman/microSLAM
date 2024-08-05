@@ -23,9 +23,9 @@ fit_tau_test(
 
 \item{species_id}{for tracking species}
 
-\item{tau0}{inital tau estimate}
+\item{tau0}{inital tau estimate (variance on the population strucutre of genetic relatedness)}
 
-\item{phi0}{inital phi estimate}
+\item{phi0}{inital phi estimate (variance on means of outputs will be 1 for logit or binonimal dispersion)}
 
 \item{maxiter}{maximum iterations to fit the glmm model}
 
@@ -34,7 +34,7 @@ fit_tau_test(
 \item{log_file}{log file to write to}
 }
 \value{
-model output for the baseline structure glmm
+model output for the tau test on population structure
 }
 \description{
 Fit the base model for population structure finding random effects

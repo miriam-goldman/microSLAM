@@ -10,8 +10,8 @@ calculate_grm(gene_matrix)
 \item{gene_matrix}{must have first column as sample names and other columns as gene names}
 }
 \value{
-grm
+grm genetic relatedness matrix for tau and beta test
 }
 \description{
-calculate the genetic relateness matrix from the gene matrix
+calculate the genetic relatedness matrix from the gene matrix
 }

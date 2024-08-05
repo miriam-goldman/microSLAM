@@ -2,7 +2,9 @@
 
 ## Introduction
 
-MicroSLAM is an R package to perform population structure leveraged association modeling for the microbiome from metagenomics data. Microbiome association studies typically link host disease or other traits to summary statistics measured in metagenomics data, such as diversity or taxonomic composition. But identifying disease-associated species based on their relative abundance does not provide insight into why these microbes act as disease markers, and it overlooks cases where disease risk is related to specific strains with unique biological functions. microSLAM is an implementation of a  mixed-effects model that performs association tests that connect host traits to the presence/absence of genes within each microbiome species, while accounting for strain genetic relatedness across hosts. Traits can be quantitative or binary (such as case/control). MicroSLAM is fit in three steps for each species. The first step estimates population structure across hosts. Step two calculates the association between population structure and the trait, enabling detection of species for which a subset of related strains confer risk. To identify specific genes whose presence/absence across diverse strains is associated with the trait, step three models the trait as a function of gene occurrence plus random effects estimated from step two.
+MicroSLAM is an R package to perform population structure leveraged association modeling for the microbiome from metagenomics data. Microbiome association studies typically link host disease or other traits to summary statistics measured in metagenomics data, such as diversity or taxonomic composition. But identifying disease-associated species based on their relative abundance does not provide insight into why these microbes act as disease markers, and it overlooks cases where disease risk is related to specific strains with unique biological functions. microSLAM is an implementation of a  mixed-effects model that performs association tests that connect host traits to the presence/absence of genes within each microbiome species, while accounting for strain genetic relatedness across hosts. Traits can be quantitative or binary (such as case/control).
+
+MicroSLAM is fit in three steps for each species. The first step estimates population structure across hosts. Step two calculates the association between population structure and the trait, enabling detection of species for which a subset of related strains confer risk. To identify specific genes whose presence/absence across diverse strains is associated with the trait, step three models the trait as a function of gene occurrence plus random effects estimated from step two.
 
 <p align="center">
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/Newflowchart.png" width=600>
@@ -25,10 +27,10 @@ Inputs are usually two dataframes:
 read in example data which in this case is simulated example output from MIDAS v3. This will be a samples by genes matrix and must contain the column sample_name to indicate the sample name.
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/genes.png" width=400>
 
-2) a metadata matrix of samples by covarites and the phenotype of interest in this case y, sample names should match gene data or be filtered to match on a species by species basis.
+2) a metadata matrix of samples by covariates and the phenotype of interest in this case y, sample names should match gene data or be filtered to match on a species by species basis.
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/metadata.png" width=400>
 
-Example of how to import data shown below. These data are simulated output from MIDAS 3, and associated simulated metadata. These data were modeled to have a strain that is correlated with the phenotype y, and a strain that is uncorrelated as well as 3 genes that are more associated to y than the phenotype. Age is was randomly simulated to be a covarite.  
+Example of how to import data shown below. These data are simulated output from MIDAS 3, and associated simulated metadata. These data were modeled to have a strain that is correlated with the phenotype y, and a strain that is uncorrelated as well as 3 genes that are more associated to y than the phenotype. Age was randomly simulated to be a covariate.  
 
 ```
 library(tidyverse)
@@ -84,7 +86,7 @@ T value of tau: 0.624
 Number of Samples: 100
 ```
 
-The outputs of this can be interpreted as the microSLAM was able to converge, the $\tau$ variable is 2.35, and we have estimated our random variable b as well as our covariates coefficients.
+The outputs of this can be interpreted as the microSLAM was able to converge, the $\tau$ variable is 2.35, and we have now estimated our random variable b as well as the coefficients of the covariates.
 
 Test the significance of the tau that was fit with a permutation test
 
@@ -100,7 +102,7 @@ pvalue = sum(tautestfit$t >= glmm_fit$t)/n_tau
 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png" with=400>
 
-In this case compared to 100 permutation of the tau test we have the most extreme example and a significant pvalue. Therefor it makes sense to use the microSLAM mixed model to find the betas for the gene-by-gene-trait associations
+In this case compared to 100 permutations of the tau test we have the most extreme example and a significant pvalue. Therefore it makes sense to use the microSLAM mixed model to find the betas for the gene-by-gene-trait associations
 
 ### $\beta$ test for gene-trait associations
 
