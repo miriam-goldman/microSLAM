@@ -78,7 +78,7 @@ tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1,
 
 ### calculate the pvalue from the permutation test ran on tau
 ```{r}
-pvalue=sum(tautestfit$t>=glmm_fit$t)/n_tau
+pvalue=sum(tautestfit$t >= glmm_fit$t)/n_tau
 ```
 
 ```{r echo=FALSE}
