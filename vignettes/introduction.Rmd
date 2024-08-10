@@ -31,25 +31,24 @@ library(DT)
 
 ```{r setup}
 library(microSLAM)
-n_tau=100 ## number of permutations for tau test
 exp_metadata = read.csv("../example_data/exp_metadata.csv")
 ### read in example metadata
 exp_genedata = read.csv("../example_data/genepresabs.csv") 
 ### read in example gene data
+### look at the data
 datatable(head(exp_genedata[1:10,1:10]))
 datatable(head(exp_metadata))
 ```
 
-
-## Step 1 create GRM
-### calculate the GRM (1-hamming distance between each sample) from gene data a samples by genes matrix
+## Step 1: Compute genetic relatedness matrix (GRM)
+### calculate the GRM (1-Manhattan distance between pairs of samples) using the gene data (samples by genes matrix)
 ```{r}
 
 GRM =calculate_grm(exp_genedata)
 datatable(round(head(GRM[1:10,1:10]),2))
 ```
 
-### GRM visualization 
+### visualize the GRM  
 
 ```{r pheatmap, echo=FALSE, fig.height=6, fig.width=8}
 rownames(exp_metadata)=rownames(GRM)
@@ -57,15 +56,15 @@ pheatmap(GRM,show_rownames=FALSE,show_colnames=FALSE,treeheight_row=0,treeheight
                     main=paste("GRM"),border_color=NA,annotation_row = exp_metadata[,-5],color=myColor,clustering_distance_rows=as.dist(1-GRM),clustering_distance_col=as.dist(1-GRM),clustering_method="average")
 ```
 
-## Step 2 fit and test tau
-### fit baseline glm for starting parameters in tau test
+## Step 2: Fit generalized linear model (glm) to estimate random effects and test for strain-trait associations using the additive genetic variance parameter tau
+### fit baseline glm with only covariates and intercept for starting parameters 
 ```{r}
 glm_fit0=glm("y~age+1", data = exp_metadata, family = "binomial")
 ```
 
-### fit tau test using baseline glm and GRM calculated above order of glm and GRM samples must match!!
+### using baseline glm and GRM, fit a glm to estimate tau and random effects. The order of samples in the baseline glm and the GRM must match!!
 ```{r}
-glmm_fit=fit_tau_test(glm_fit0, GRM,species_id="test",verbose = TRUE,log_file=NA)
+glmm_fit=fit_tau_test(glm_fit0, GRM, species_id="test", verbose = TRUE, log_file=NA)
 ```
 ```{r}
 summary(glmm_fit)
@@ -73,7 +72,8 @@ summary(glmm_fit)
 
 ### test the significance of the tau that was fit
 ```{r}
-tautestfit=run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1,seed=63)
+n_tau=100 ## number of permutations for tau test
+tautestfit=run_tau_test(glm_fit0, GRM, n_tau, species_id = "test", tau0=1, phi0=1, seed=63)
 ```
 
 ### calculate the pvalue from the permutation test ran on tau
@@ -91,7 +91,7 @@ ggplot(tautestfit,aes(t))+geom_histogram(bins = 30)+geom_vline(xintercept = glmm
 ```
 
 
-## Step 3 fit and test beta for each gene
+## Step 3: Fit generalized linear mixed model for each gene and test if it associated with trait (beta test)
 ### transform the gene data to a long matrix to fit each gene separately
 ```{r}
 gene_long=exp_genedata %>%
@@ -106,7 +106,7 @@ gene_long=exp_genedata %>%
 gene_test_df=fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=TRUE)
 ```
 
-### plot a simple volcano plot of the results
+### plot a volcano plot of the results
 ```{r, fig.height=6, fig.width=8}
 ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+geom_point(data=gene_test_df[which(gene_test_df$SPA_pvalue >= .005),], color='gray80', size=2)+geom_point(data=gene_test_df[which(gene_test_df$SPA_pvalue <= .005),], color='red', size=2)+theme_minimal()
 ```
@@ -122,6 +122,5 @@ datatable(head(gene_test_df_vis[1:6,9:15]))
 straingenes = gene_test_df %>% filter(abs(cor_to_b)>.4)
 rownames(exp_genedata) = exp_genedata$sample_name
 straingenesvalues = exp_genedata[,straingenes$gene_id]
-pheatmap(straingenesvalues,show_rownames=FALSE,show_colnames=FALSE,treeheight_row=0,treeheight_col = 0,labels_row="samples",labels_col="samples",
-                    main=paste("Strain Associated Genes"),border_color=NA,annotation_row = exp_metadata[,-5],color=myColor,clustering_method="average")
+pheatmap(straingenesvalues, show_rownames=FALSE, show_colnames=FALSE, treeheight_row=0, treeheight_col = 0, labels_row="samples", labels_col="samples", main=paste("Strain Associated Genes"), border_color=NA, annotation_row = exp_metadata[,-5], color=myColor, clustering_method="average")
 ```
