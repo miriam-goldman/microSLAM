@@ -29,16 +29,15 @@ Inputs are usually two dataframes:
 2) Metadata: a matrix containing information about the phenotype (y) and the covariates for each sample. The sample names should match those in the gene data, and hence the metadata matrix may need to be pre-filtered on a species by species basis to contain data for only those samples with gene data for that species. The matrix provided in example_data (.csv format) is simulated metadata. 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/metadata.png" width=400>
 
-Users will read in gene data from a file and metadata from a second file, both in .csv format, as shown below. The simulated example_data were modeled to have a strain that is correlated with the phenotype y, and a strain that is uncorrelated as well as 3 genes that are more associated with y than expected given the population structure. Age was randomly simulated as a covariate that is not associated with y.  
+Users will read in gene data from a file and metadata from a second file, both in .csv format, as shown below. The simulated example_data were modeled to have a strain that is correlated with the phenotype y, and a strain that is uncorrelated as well as three genes that are more associated with y than expected given the population structure. Age was randomly simulated as a covariate that is not associated with y.  
 
 ```
 library(tidyverse)
 library(magrittr)
-n_tau = 100 ### number of permutations for tau test
-exp_metadata = read.csv("../example_data/exp_metadata.csv") ### read in example metadata
-## metadata is a sample by different covariates and phenotype matrix
 exp_genedata = read.csv("../example_data/genepresabs.csv") ### read in example gene data
-## gene data is a sample by gene matrix for one species
+## gene data is a number of samples by number of genes matrix for one species
+exp_metadata = read.csv("../example_data/exp_metadata.csv") ### read in example metadata
+## metadata is a number of samples (same as gene data) by k (number of covariates + 1) matrix
 ```
 
 ### Calculate Genetic Relatedness Matrix (GRM)
@@ -90,6 +89,7 @@ The outputs of this can be interpreted as the microSLAM was able to converge, th
 Test the significance of the tau that was fit with a permutation test
 
 ```
+n_tau = 100 ### number of permutations for tau test
 tautestfit = run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
 ```
 
