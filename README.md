@@ -23,13 +23,13 @@ library(microSLAM)
 
 Inputs are usually two dataframes:
 
-1) Gene data: a dataframe containing information about the genes from a species' pangenome that are present versus absent in each sample (host), typically filtered to remove core genes (e.g., omiting genes that are more than 90% present across samples). Gene presence/absence can be estimated with bioiformatics tools, such as MIDAS. This will be a samples by genes matrix and must contain the column sample_name to indicate the sample name. Users will read in gene data from a file, in this example simulated gene presence/absence. 
+1) Gene data: a matrix containing information about the genes from a species' pangenome that are present versus absent in each sample (host), typically filtered to remove core genes (e.g., omiting genes that are more than 90% present across samples). Gene presence/absence can be estimated with bioiformatics tools, such as MIDAS. This will be a samples by genes matrix and must contain the column sample_name to indicate the sample name. The matrix provided in example_data is a simulated gene presence/absence matrix (.csv format) for 100 samples and 1000 genes. 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/genes.png" width=400>
 
-2) Metadata: a matrix of samples by covariates and the phenotype of interest in this case y, sample names should match gene data or be filtered to match on a species by species basis.
+2) Metadata: a matrix containing information about the phenotype (y) and the covariates for each sample. The sample names should match those in the gene data, and hence the metadata matrix may need to be pre-filtered on a species by species basis to contain data for only those samples with gene data for that species. The matrix provided in example_data (.csv format) is simulated metadata. 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/metadata.png" width=400>
 
-Example of how to import data shown below. These data are simulated output from MIDAS 3, and associated simulated metadata. These data were modeled to have a strain that is correlated with the phenotype y, and a strain that is uncorrelated as well as 3 genes that are more associated to y than the phenotype. Age was randomly simulated to be a covariate.  
+Users will read in gene data from a file and metadata from a second file, both in .csv format, as shown below. The simulated example_data were modeled to have a strain that is correlated with the phenotype y, and a strain that is uncorrelated as well as 3 genes that are more associated with y than expected given the population structure. Age was randomly simulated as a covariate that is not associated with y.  
 
 ```
 library(tidyverse)
