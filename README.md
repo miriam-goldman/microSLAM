@@ -40,7 +40,7 @@ exp_metadata = read.csv("../example_data/exp_metadata.csv") ### read in example 
 ## metadata is a number of samples (same as gene data) by k (number of covariates + 1) matrix
 ```
 
-### Calculate Genetic Relatedness Matrix (GRM)
+### Step 1: Calculate Genetic Relatedness Matrix (GRM)
 
 Using the gene matrix imported above, step one will compute the GRM using the gene data. This GRM represents the population structure of the species across samples and is estimated as the similarity (1 minus Manhatten distance) of gene presence/absence vectors between pairs of samples. MicroSLAM will use the GRM to estimate sample-specific random effects for the mixed effects model. The gene matrix must contain the column sample_name for this step to run properly. Note that users may provide their own GRM in the following steps of microSLAM. For example, the GRM could be computed using a different distance or it could be esimated using other forms of genetic variation, such as core geneome single-nucleotide variants. 
 ```
@@ -50,22 +50,22 @@ Example of GRM:
 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/GRM.png" width=500>
 
-#### Visualization of the GRM with the strain information used to generate it are labeled.
-This gene data was generated with a strain that is correlated to y in half of the samples and another strain (or subset of semi correlated genes) that are not correlated to y. In additin, three genes were simulated to be more related to y than either strain is.
+#### Visualization of the GRM with the strain information used to generate it labeled
+This gene data was generated with a strain (defined by a subset of correlated genes) that is associated with y in half of the samples and another strain that is not associated with y. In addition, three genes were simulated to be more related to y than is either strain.
 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png" width=600>
 
-### $\tau$ test for population structure (strain-trait associations)
-Fit baseline glm for starting parameters in tau test, this can be done as you would do a normal glm for your data.
+### Step 2: Perform $\tau$ test for population structure (strain-trait associations)
+Fit a baseline generalized linear model (glm) with only the covariate and an intercept, to obtain starting parameter estimates for the tau test. The family for the glm is binomial because y is binary. 
 
 ```
 glm_fit0 = glm("y~age+1", data = exp_metadata, family = "binomial")
 ```
 
-Fit tau test using baseline glm and GRM calculated above
+Fit a random effects glm using the baseline glm and GRM, and use it to estimate the parameter $\tau$, which measures how associated population structure is with the trait y. 
 
 ```
-glmm_fit = fit_tau_test(glm_fit0, GRM,species_id = "test",verbose = FALSE,log_file = NA)
+glmm_fit = fit_tau_test(glm_fit0, GRM, species_id = "test", verbose = FALSE, log_file = NA)
 summary(glmm_fit)
 ```
 
@@ -84,16 +84,16 @@ T value of tau: 0.624
 Number of Samples: 100
 ```
 
-The outputs of this can be interpreted as the microSLAM was able to converge, the $\tau$ variable is 2.35, and we have now estimated our random variable b as well as the coefficients of the covariates.
+This output can be interpreted as showing that microSLAM's glm in step two was able to converge, the $\tau$ variable is 2.354, the random effects variables (b) have been estimated, and the coefficients for the covariates have been estimated.
 
-Test the significance of the tau that was fit with a permutation test
+Next, test the significance of the estimated $\tau$ with a permutation test.
 
 ```
 n_tau = 100 ### number of permutations for tau test
-tautestfit = run_tau_test(glm_fit0, GRM,n_tau,species_id = "test", tau0=1, phi0=1)
+tautestfit = run_tau_test(glm_fit0, GRM, n_tau, species_id = "test", tau0=1, phi0=1)
 ```
 
-Calculate the pvalue from the permutation test ran on tau
+Calculate the p-value from the permutation test.
 
 ```
 pvalue = sum(tautestfit$t >= glmm_fit$t)/n_tau
@@ -101,7 +101,7 @@ pvalue = sum(tautestfit$t >= glmm_fit$t)/n_tau
 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png" with=400>
 
-In this case compared to 100 permutations of the tau test we have the most extreme example and a significant pvalue. Therefore it makes sense to use the microSLAM mixed model to find the betas for the gene-by-gene-trait associations
+In this case, the observed $\tau$ value is larger than all $\tau$ values from 100 permutations that break the association bewteen population structure and y (permutation null distribution). This indicates that there is significant population structure for this species that is associated with y. To get a more precise p-value, more permutations could be run.  
 
 ### $\beta$ test for gene-trait associations
 
