@@ -101,11 +101,11 @@ pvalue = sum(tautestfit$t >= glmm_fit$t)/n_tau
 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png" with=400>
 
-In this case, the observed $\tau$ value is larger than all $\tau$ values from 100 permutations that break the association bewteen population structure and y (permutation null distribution). This indicates that there is significant population structure for this species that is associated with y. To get a more precise p-value, more permutations could be run.  
+In this case, the observed $\tau$ value (red vertical line) is larger than all $\tau$ values from 100 permutations that break the association bewteen population structure and y (histogram shows permutation null distribution). This indicates that there is significant population structure for this species that is associated with y. To get a more precise p-value, more permutations could be run.  
 
-### $\beta$ test for gene-trait associations
+### Step 3: $\beta$ test for gene-trait associations
 
-Transform the gene data to a long matrix to fit each gene separately
+Having detected population structure associated with the trait y, next fit a series of mixed effects models to test each gene for associations with y that are independent from the overall strain association. Rapidly gained and lost genes may have such indepdent associations. First, transform the gene data to a long matrix to fit each gene separately.
 
 ```
 gene_long = exp_genedata %>%
@@ -115,13 +115,13 @@ gene_long = exp_genedata %>%
     as.data.frame()
 ```
 
-Fit a beta for each gene adjusting for the population structure
+Fit a series of mixed effects glm models, one for each gene, that adjust for population structure using the random effects from Step two and perform a t-test to assess the significance of each gene's association with y ($\beta$).
 
 ```  
 gene_test_df = fit_beta(glmm_fit,glm_fit0,GRM,gene_long,SPA=TRUE)
 ```
 
-Plot a simple volcano plot of the results, in this case genes 1, 2, and 3, have been generated as being more related to the phenotype than the simulated strain. These are colored in red.
+Plot a volcano plot of the results showing each gene's $\beta$ value versus its p-value. In this simulated data genes 1, 2, and 3 have been generated with associations that excede the strain association. The genes with p-values of 0.005 or smaller are colored in red and correspond to these three genes.
 
 ```
 ggplot(gene_test_df,aes(beta,-log10(SPA_pvalue)))+
@@ -143,11 +143,11 @@ Example output dataframe for $\beta$ test
 Columns are:
 
 ```
-species_id: the id of the bacterial species run
-tau: estimate for tau variance variable
-gene_id: gene id for gene run
+species_id: the id of the bacterial species
+tau: estimate for tau genetic variance variable
+gene_id: gene id for each gene 
 cor: correlation between the y variable and the gene data for that gene
-cor_to_b: correlation between the random b variable and the gene data for that gene
+cor_to_b: correlation between the random b variable and the gene data for that gene, which indicates genes driving overall strain-trait associations
 z: z value estimated for gene from GLMM
 var1: variance estimated for gene from GLMM
 beta: beta estimate for gene from GLMM
@@ -157,11 +157,10 @@ SPA_pvalue: saddle point adjusted pvalue from GLMM
 spa_score: saddle point adjusted t score from GLMM
 SPA_zvalue:  saddle point adjusted z value from GLMM
 pvalue_noadj: pvalue not adjusted from saddle point approximation
-converged: did the spa algrothim converge or not
+converged: did the saddle point adjustment (spa) algrothim converge or not
 ```
 
-If you want to visualize the genes that are correlated with the strain you can filter the genes to those that are > than some cut off correlated to b. Example of this is below.
-
+To visualize genes that contribute the most to the strain-trait association, each gene's correlation with the random effects vector b can be computed and the top correlated genes identified. In this example, genes with correlation above 0.4 are identified.
 
 ```
 strain_genes = gene_test_df %>%
@@ -185,4 +184,4 @@ clustering_method = "average")
 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/strainheatmap.png?raw=true">
 
-300 genes were modeled from the strain, and we are able to recover 288 of these through this cut off. These can be used to find which genes make up substrains related to the phenotype of interest.
+300 genes were modeled from the strain, and 288 of these have a correlation with b that exceeds 0.4. Samples could be clustered using these genes, and the genes can be considered as markers for the clades within the population structure of the species.
