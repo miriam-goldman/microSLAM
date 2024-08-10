@@ -42,7 +42,7 @@ exp_metadata = read.csv("../example_data/exp_metadata.csv") ### read in example 
 
 ### Calculate Genetic Relatedness Matrix (GRM)
 
-From the gene matrix imported above make the GRM. This GRM represents how similar our samples are within the space of the genes of this bacterial species but other representations should be valid. We will use this to estimate our random effects for our mixed model and this is used to represent the population structure. The gene matrix must contain the column sample_name for this to run properly.  
+Using the gene matrix imported above, step one will compute the GRM using the gene data. This GRM represents the population structure of the species across samples and is estimated as the similarity (1 minus Manhatten distance) of gene presence/absence vectors between pairs of samples. MicroSLAM will use the GRM to estimate sample-specific random effects for the mixed effects model. The gene matrix must contain the column sample_name for this step to run properly. Note that users may provide their own GRM in the following steps of microSLAM. For example, the GRM could be computed using a different distance or it could be esimated using other forms of genetic variation, such as core geneome single-nucleotide variants. 
 ```
 GRM = calculate_grm(exp_genedata)
 ```
@@ -51,7 +51,7 @@ Example of GRM:
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/GRM.png" width=500>
 
 #### Visualization of the GRM with the strain information used to generate it are labeled.
-This gene data was generated with a strain that is correlated to y in half of the samples and another strain or subset of semi correlated genes that are not correlated to the hypothetical phenotype of interest. We are most interested in genes that are able to explain our phenotype more than the simulated strain, in this case 3 genes were simulated to be more related to the phenotype than the strain.
+This gene data was generated with a strain that is correlated to y in half of the samples and another strain (or subset of semi correlated genes) that are not correlated to y. In additin, three genes were simulated to be more related to y than either strain is.
 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png" width=600>
 
