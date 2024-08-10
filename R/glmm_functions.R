@@ -1,13 +1,17 @@
-### functions needed to run mircoSLAM a GLMM for MWAS
-### Methodology and Equations for fitting REML AI for GLMM are from SAIGE Supplement 
-### doi: 10.1038/s41588-018-0184-y
-### Zhou W, Nielsen JB, Fritsche LG, Dey R, Gabrielsen ME, Wolford BN, LeFaive J,
-### VandeHaar P, Gagliano SA, Gifford A, Bastarache LA, Wei WQ, Denny JC, Lin M, 
-### Hveem K, Kang HM, Abecasis GR, Willer CJ, Lee S. 
-### Efficiently controlling for case-control imbalance 
-### and sample relatedness in large-scale genetic association studies. 
-### Nat Genet. 2018
-### SPA test and function used in those are directly adapted from SPAtest package: https://github.com/leeshawn/SPAtest
+### Functions needed to run mircoSLAM, software for performing metagenome-wide association studies (MWAS)
+### The approach is to fit generalized linear mixed effects models (GLMMs) and use them to test for trait associations
+###
+### Code for fitting GLMMs (REML AI) is adapted from the SAIGE package (GNU GPL):
+###   https://saigegit.github.io/SAIGE-doc/
+###  Methodology and equations are described in the supplement of this paper: 
+###   Zhou W, Nielsen JB, Fritsche LG, Dey R, Gabrielsen ME, Wolford BN, LeFaive J,
+###   VandeHaar P, Gagliano SA, Gifford A, Bastarache LA, Wei WQ, Denny JC, Lin M, 
+###   Hveem K, Kang HM, Abecasis GR, Willer CJ, Lee S. 
+###   Efficiently controlling for case-control imbalance and sample relatedness in large-scale genetic association studies. 
+###   Nature Genetics. 2018
+###   doi: 10.1038/s41588-018-0184-y
+### Functions for saddle point approximation (SPA) are from the SPAtest package (GNU GPL): 
+###   https://github.com/leeshawn/SPAtest
 
 #' calculate_grm
 #'
@@ -336,7 +340,7 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
   alpha.obj = get_alpha(y, X, var_vec0, grm, family, alpha0, eta0, offset, maxiter = maxiter, verbose = verbose, tol.coef = tol, write_log = write_log)
   var_vec=var_vec0
  
-  ### update var differently if quantative 
+  ### update var differently if quantitative 
   if (quant) {
     re = get_AI_score_quant(alpha.obj$Y, X, grm, alpha.obj$W, var_vec0, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
     var_vec[2] = max(0, as.numeric(var_vec0[2] + var_vec0[2]^2 * (re$YPAPY - re$trace_P_grm) / n))
@@ -782,7 +786,7 @@ get_root_K1 <- function(init, mu, g, q, m1, tol = .0001, maxiter = 1000) {
 }
 
 Korg <- function(t, mu, g) {
-  #### taken from ‘SPAtest’
+  #### From ‘SPAtest’ package
   n.t = length(t)
   out = rep(0, n.t)
 
@@ -795,7 +799,7 @@ Korg <- function(t, mu, g) {
 }
 
 get_saddle_prob <- function(zeta, mu, g, q, log.p = FALSE) {
-  #### taken from ‘SPAtest package’
+  #### From ‘SPAtest' package
   k1 = Korg(zeta, mu, g)
   k2 = K2(zeta, mu, g)
 
@@ -830,7 +834,7 @@ get_saddle_prob <- function(zeta, mu, g, q, log.p = FALSE) {
 }
 
 K1_adj <- function(t, mu, g, q) {
-  #### taken from ‘SPAtest package’
+  #### From ‘SPAtest' package
   n.t = length(t)
   out = rep(0, n.t)
 
