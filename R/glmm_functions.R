@@ -700,7 +700,7 @@ summary <- function(x, ...) {
 #'
 #' Summarize the output of fit tau test
 #'
-#' @param object a pop.struct.glmm objecct the output of fit_tau_test; GLMM of species with grm accounted for
+#' @param x a pop.struct.glmm objecct the output of fit_tau_test; GLMM of species with grm accounted for
 #' @export
 summary.pop.struct.glmm <- function(x, ...) {
   cat("Species ID: ", x$species_id, "\n")

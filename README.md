@@ -42,7 +42,7 @@ exp_metadata = read.csv("../example_data/exp_metadata.csv") ### read in example 
 
 ### Step 1: Calculate Genetic Relatedness Matrix (GRM)
 
-Using the gene matrix imported above, step one will compute the GRM using the gene data. This GRM represents the population structure of the species across samples and is estimated as the similarity (1 minus Manhattan distance) of gene presence/absence vectors between pairs of samples. MicroSLAM will use the GRM to estimate sample-specific random effects for the mixed effects model. The gene matrix must contain the column sample_name for this step to run properly. Note that users may provide their own GRM in the following steps of microSLAM. For example, the GRM could be computed using a different distance or it could be estimated using other forms of genetic variation, such as core genome single-nucleotide variants. 
+Using the gene matrix imported above, step one will compute the GRM using the gene data. This GRM represents the population structure of the species across samples and is estimated as the similarity (1 minus Manhattan distance) of gene presence/absence vectors between pairs of samples. MicroSLAM will use the GRM to estimate sample-specific random effects for the mixed effects model. The gene matrix must contain the column sample_name for this step to run properly. Note that users may provide their own GRM in the following steps of microSLAM. For example, the GRM could be computed using a different distance or it could be estimated using other forms of genetic variation, such as core genome single-nucleotide variants.
 ```
 GRM = calculate_grm(exp_genedata)
 ```
@@ -66,7 +66,7 @@ Fit a random effects glm using the baseline glm and GRM, and use it to estimate 
 
 ```
 glmm_fit = fit_tau_test(glm_fit0, GRM, species_id = "test", verbose = FALSE, log_file = NA)
-summary(glmm_fit)
+summary.pop.struct.glmm(glmm_fit)
 ```
 
 ```
