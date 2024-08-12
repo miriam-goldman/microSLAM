@@ -702,17 +702,17 @@ summary <- function(x, ...) {
 #'
 #' @param object a pop.struct.glmm objecct the output of fit_tau_test; GLMM of species with grm accounted for
 #' @export
-summary.pop.struct.glmm <- function(object, ...) {
-  cat("Species ID: ", object$species_id, "\n")
-  cat("Formula: ", object$formula, "\n")
-  cat("family: ", paste(object$trait_type[1:2]), "\n")
-  cat("Fixed-effect covariates estimates: \n", names(object$coefficients), "\n", round(object$coefficients,3), "\n")
-  cat("Converged: ", object$converged, "\n")
-  cat("Number of iterations:",object$iter_finised,"\n")
-  cat("Tau: ", round(object$var_vec[2],3), "\n")
-  cat("Phi: ", round(object$var_vec[1],3), "if logit or binomail should be 1", "\n")
-  cat("T value of tau:", round(object$t,3),"\n")
-  cat("Number of Samples:", length(object$sample_names),"\n")
+summary.pop.struct.glmm <- function(x, ...) {
+  cat("Species ID: ", x$species_id, "\n")
+  cat("Formula: ", x$formula, "\n")
+  cat("family: ", paste(x$trait_type[1:2]), "\n")
+  cat("Fixed-effect covariates estimates: \n", names(x$coefficients), "\n", round(x$coefficients,3), "\n")
+  cat("Converged: ", x$converged, "\n")
+  cat("Number of iterations:",x$iter_finised,"\n")
+  cat("Tau: ", round(x$var_vec[2],3), "\n")
+  cat("Phi: ", round(x$var_vec[1],3), "if logit or binomail should be 1", "\n")
+  cat("T value of tau:", round(x$t,3),"\n")
+  cat("Number of Samples:", length(x$sample_names),"\n")
  
 }
 

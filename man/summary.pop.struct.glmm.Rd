@@ -4,7 +4,7 @@
 \alias{summary.pop.struct.glmm}
 \title{summary.pop.struct.glmm}
 \usage{
-\method{summary}{pop.struct.glmm}(object, ...)
+\method{summary}{pop.struct.glmm}(x, ...)
 }
 \arguments{
 \item{object}{a pop.struct.glmm objecct the output of fit_tau_test; GLMM of species with grm accounted for}
