@@ -59,10 +59,10 @@ pheatmap(GRM,show_rownames=FALSE,show_colnames=FALSE,treeheight_row=0,treeheight
 ## Step 2: Fit generalized linear model (glm) to estimate random effects and test for strain-trait associations using the additive genetic variance parameter tau
 ### fit baseline glm with only covariates and intercept for starting parameters 
 ```{r}
-glm_fit0=glm("y~age+1", data = exp_metadata, family = "binomial")
+glm_fit0=glm("y ~ age  + 1", data = exp_metadata, family = "binomial")
 ```
 
-### using baseline glm and GRM, fit a glm to estimate tau and random effects. The order of samples in the baseline glm and the GRM must match!!
+### using baseline glm and GRM, fit a glm to estimate tau and random effects. The order of samples in the baseline glm and the GRM must match, if there is a column name sample_name in gene data to make GRM and in metadata used in glm this will be checked. 
 ```{r}
 glmm_fit=fit_tau_test(glm_fit0, GRM, species_id="test", verbose = TRUE, log_file=NA)
 ```
@@ -78,7 +78,7 @@ tautestfit=run_tau_test(glm_fit0, GRM, n_tau, species_id = "test", tau0=1, phi0=
 
 ### calculate the pvalue from the permutation test ran on tau
 ```{r}
-pvalue=sum(tautestfit$t >= glmm_fit$t)/n_tau
+pvalue=(sum(tautestfit$t >= glmm_fit$t) + 1)/n_tau
 ```
 
 ```{r echo=FALSE}
@@ -93,6 +93,8 @@ ggplot(tautestfit,aes(t))+geom_histogram(bins = 30)+geom_vline(xintercept = glmm
 
 ## Step 3: Fit generalized linear mixed model for each gene and test if it associated with trait (beta test)
 ### transform the gene data to a long matrix to fit each gene separately
+### If memory is a problem the gene data can be overwritten and transformed back if needed later. 
+
 ```{r}
 gene_long=exp_genedata %>%
   pivot_longer(cols=starts_with("gene"),

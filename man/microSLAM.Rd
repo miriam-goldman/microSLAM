@@ -6,10 +6,11 @@
 \alias{microSLAM}
 \title{The microSLAM package}
 \description{
-microSLAM is a library and R package for microbiome GLMM models
+microSLAM is a library and R package for performing metagenome-wide association studies with
+generalized linear mixed effects models (GLMMs)
 }
 \author{
-\strong{Maintainer}: Miriam Goldman \email{miriam.goldman@ucsf.edu}
+\strong{Maintainer}: Miriam Goldman \email{miriamagoldman@gmail.com}
 
 }
 \keyword{glmm}
