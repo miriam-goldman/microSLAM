@@ -688,11 +688,6 @@ run_tau_test <- function(glm.fit0, grm, n_tau, species_id = "s_id", tau0, phi0, 
   return(df_of_tau)
 }
 
-#' ... all the usual documentation for summary() ...
-#' @export
-summary <- function(x, ...) {
-  UseMethod("summary")
-}
 
 
 
@@ -701,7 +696,8 @@ summary <- function(x, ...) {
 #' Summarize the output of fit tau test
 #'
 #' @param x a pop.struct.glmm objecct the output of fit_tau_test; GLMM of species with grm accounted for
-#' @export
+#' @export summary.pop.struct.glmm
+#' @export 
 summary.pop.struct.glmm <- function(x, ...) {
   cat("Species ID: ", x$species_id, "\n")
   cat("Formula: ", x$formula, "\n")
@@ -713,6 +709,12 @@ summary.pop.struct.glmm <- function(x, ...) {
   cat("Phi: ", round(x$var_vec[1],3), "if logit or binomail should be 1", "\n")
   cat("T value of tau:", round(x$t,3),"\n")
   cat("Number of Samples:", length(x$sample_names),"\n")
+}
+
+#' ... all the usual documentation for summary() ...
+#' @export
+summary <- function(x, ...) {
+  UseMethod("summary")
 }
 
 
