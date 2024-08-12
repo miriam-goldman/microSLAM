@@ -13,7 +13,5 @@ RnwWeave: Sweave
 LaTeX: XeLaTeX
 
 BuildType: Package
-PackageUseDevtools: Yes
-PackagePath: /Users/miriamgoldman/microSLAM
 PackageCheckArgs: --as-cran
 PackageRoxygenize: rd,collate,namespace,vignette

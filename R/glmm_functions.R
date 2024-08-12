@@ -59,7 +59,7 @@ get_coef_inner <- function(Y, X, W, var_vec, grm) {
   sigmai_Xt = t(sigmai_X) # t(V^-1 X)
   sigmaiXtY = sigmai_Xt %*% Y # XtV^-1Y
   alpha = cov_var %*% sigmaiXtY # (Xt V X)^-1 XtVY
-  epsilon =   var_vec[1] *(t(sigmai_Y) - t(sigmai_X %*% alpha)) / as.vector(W) # phi to act on W
+  epsilon = var_vec[1] *(t(sigmai_Y) - t(sigmai_X %*% alpha)) / as.vector(W) # phi to act on W
   eta = as.vector(Y - epsilon) # Y-var_vec \sigma (Y-X\alpha)
   b = eta - X %*% alpha
   coef_list = list("sigmai_Y" = sigmai_Y, "sigmai_X" = sigmai_X, "cov_var" = cov_var, "alpha" = alpha, "eta" = eta, "b" = b, "epsilon" = epsilon)
@@ -95,9 +95,9 @@ get_AI_score_quant <- function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_va
   sigma = gen_sigma(W, var_vec, grm)
   sigmai_Xt = t(sigmai_X) # transpose X
   P = solve(sigma) - sigmai_X %*% cov_var %*% sigmai_Xt
-  diag_P =   var_vec[1]* diag(P) / (W)
+  diag_P = diag(P) / (W)
   PY1 = P %*% Y # \hat{Y}-\hat(X) (Xt V X)^-1 PY
-  wPY = var_vec[1]* PY1 / (W)
+  wPY = PY1 / (W)
   YPwPY = t(PY1) %*% wPY
   YPwPY = YPwPY[1]
   APY = grm %*% PY1
@@ -190,10 +190,14 @@ fit_vars <- function(Y_vec, X_mat, grm, w_vec, var_vec, sigmai_Y, sigmai_X, cov_
     }
   }
 
-  if (any(var_vec < tol)) {
+  if (var_vec[1] < tol) {
     print("Warning! The first variance component parameter estimate is set at the tolarance")
-    var_vec[which(var_vec < tol)] = tol*10
+    var_vec[1] = tol*10
   }
+  if (var_vec[2] < tol) {
+    var_vec[2] = 0
+  }
+  
   return(list("var_vec" = var_vec))
 }
 
@@ -362,7 +366,6 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
     rss_0 = sum((y - mu)^2)
     t_begin_alpha = proc.time()
     alpha.obj = get_alpha(y, X, var_vec, grm, family, alpha0, eta0, offset, verbose = verbose, maxiter = maxiter, tol.coef = tol, write_log = write_log)
-    print(alpha.obj$alpha)
     t_end_get_alpha = proc.time()
     if (verbose) {
       cat("\ntime to get alpha\n")
@@ -443,7 +446,6 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
     }
   }
   alpha.obj = get_alpha(y, X, var_vec, grm, family, alpha, eta, offset, verbose = verbose, maxiter = maxiter, tol.coef = tol, write_log = write_log)
-  print(alpha.obj$alpha)
   if (quant) {
     if(tol_limt){
       fit.final = get_AI_score_quant(alpha.obj$Y, X, grm, alpha.obj$W, var_vec, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
@@ -519,7 +521,7 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
     forbeta.obj = forbeta.obj,
     y = y, X = Xorig,
     trait_type = glm.fit0$family,
-    formula = paste0(glm.fit0$formula, "+b"),
+    formula = paste0(glm.fit0$formula, " + b"),
     iter_finised = i,
     model_metrics = model_metrics, species_id = species_id, grm = grm
   )
@@ -686,7 +688,21 @@ run_tau_test <- function(glm.fit0, grm, n_tau, species_id = "s_id", tau0, phi0, 
   return(df_of_tau)
 }
 
-summary.pop.struct.glmm <- function(object) {
+#' ... all the usual documentation for summary() ...
+#' @export
+summary <- function(x, ...) {
+  UseMethod("summary")
+}
+
+
+
+#' summary.pop.struct.glmm 
+#'
+#' Summarize the output of fit tau test
+#'
+#' @param object a pop.struct.glmm objecct the output of fit_tau_test; GLMM of species with grm accounted for
+#' @export
+summary.pop.struct.glmm <- function(object, ...) {
   cat("Species ID: ", object$species_id, "\n")
   cat("Formula: ", object$formula, "\n")
   cat("family: ", paste(object$trait_type[1:2]), "\n")
@@ -699,6 +715,7 @@ summary.pop.struct.glmm <- function(object) {
   cat("Number of Samples:", length(object$sample_names),"\n")
  
 }
+
 
 saddle_prob <- function(q, mu, g, var1, cutoff = 2, log.p = FALSE) {
   #### taken from ‘SPAtest’ with a few changes for use case
@@ -752,7 +769,7 @@ saddle_prob <- function(q, mu, g, var1, cutoff = 2, log.p = FALSE) {
   }
   z_value = qnorm(pval / 2, log.p = F, lower.tail = F) * sign(q - m1)
   if (pval != 0 && pval_noadj / pval > 10^3) {
-    return(saddle_prob(q, mu, g, var1, cutoff = cutoff * 2, output, log.p = log.p))
+    return(saddle_prob(q, mu, g, var1, cutoff = cutoff * 2, log.p = log.p))
   } else if (pval == 0) {
     return(list(p.value = pval, pvalue_noadj = pval_noadj, z_value = z_value, converged = FALSE, score = score))
   } else {
