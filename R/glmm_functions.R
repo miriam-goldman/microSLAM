@@ -713,7 +713,6 @@ summary.pop.struct.glmm <- function(x, ...) {
   cat("Phi: ", round(x$var_vec[1],3), "if logit or binomail should be 1", "\n")
   cat("T value of tau:", round(x$t,3),"\n")
   cat("Number of Samples:", length(x$sample_names),"\n")
- 
 }
 
 
