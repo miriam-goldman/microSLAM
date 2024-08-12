@@ -1,6 +1,7 @@
 #' The microSLAM package
 #'
-#' microSLAM is a library and R package for microbiome GLMM models
+#' microSLAM is a library and R package for performing metagenome-wide association studies with
+#'  generalized linear mixed effects models (GLMMs)
 #'
 #' @rdname microSLAM
 #' @name microSLAM-package
