@@ -32,7 +32,6 @@ calculate_grm <- function(gene_matrix) {
 
 gen_sigma <- function(W, var_vec, grm) {
   ### update grm with W and var_vec
-  ## value vector is kin
   # grm is an (nxn) symmetric matrix
   # adapted from SAIGE package
   grm = as.matrix(grm)
@@ -60,7 +59,7 @@ get_coef_inner <- function(Y, X, W, var_vec, grm) {
   sigmai_Xt = t(sigmai_X) # t(V^-1 X)
   sigmaiXtY = sigmai_Xt %*% Y # XtV^-1Y
   alpha = cov_var %*% sigmaiXtY # (Xt V X)^-1 XtVY
-  epsilon = var_vec[1] * (t(sigmai_Y) - t(sigmai_X %*% alpha)) / as.vector(W) # phi to act on W
+  epsilon =   var_vec[1] *(t(sigmai_Y) - t(sigmai_X %*% alpha)) / as.vector(W) # phi to act on W
   eta = as.vector(Y - epsilon) # Y-var_vec \sigma (Y-X\alpha)
   b = eta - X %*% alpha
   coef_list = list("sigmai_Y" = sigmai_Y, "sigmai_X" = sigmai_X, "cov_var" = cov_var, "alpha" = alpha, "eta" = eta, "b" = b, "epsilon" = epsilon)
@@ -96,9 +95,9 @@ get_AI_score_quant <- function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_va
   sigma = gen_sigma(W, var_vec, grm)
   sigmai_Xt = t(sigmai_X) # transpose X
   P = solve(sigma) - sigmai_X %*% cov_var %*% sigmai_Xt
-  diag_P = diag(P) / W
+  diag_P =   var_vec[1]* diag(P) / (W)
   PY1 = P %*% Y # \hat{Y}-\hat(X) (Xt V X)^-1 PY
-  wPY = PY1 / W
+  wPY = var_vec[1]* PY1 / (W)
   YPwPY = t(PY1) %*% wPY
   YPwPY = YPwPY[1]
   APY = grm %*% PY1
@@ -117,6 +116,7 @@ get_AI_score_quant <- function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_va
   AI_01 = (t(PAPY) %*% wPY)
   AI_mat = matrix(c(AI_00[1], AI_01[1], AI_01[1], AI_11[1]), 2, 2)
   Dtau = solve(AI_mat, score_vector)
+  
   return(list(YPAPY = YPAPY, PY = PY1, YPwPY = YPwPY, trace_P_grm = trace_P_grm, trace_PW = trace_PW, AI = AI_mat, score_vector = score_vector))
 }
 
@@ -191,7 +191,8 @@ fit_vars <- function(Y_vec, X_mat, grm, w_vec, var_vec, sigmai_Y, sigmai_X, cov_
   }
 
   if (any(var_vec < tol)) {
-    var_vec[which(var_vec < tol)] = 0
+    print("Warning! The first variance component parameter estimate is set at the tolarance")
+    var_vec[which(var_vec < tol)] = tol*10
   }
   return(list("var_vec" = var_vec))
 }
@@ -344,7 +345,7 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
   if (quant) {
     re = get_AI_score_quant(alpha.obj$Y, X, grm, alpha.obj$W, var_vec0, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
     var_vec[2] = max(0, as.numeric(var_vec0[2] + var_vec0[2]^2 * (re$YPAPY - re$trace_P_grm) / n))
-    var_vec[1] = max(0, as.numeric(var_vec0[1] + var_vec0[1]^2 * (re$YPwPY - re$trace_PW) / n))
+    var_vec[1] = max(tol*10, as.numeric(var_vec0[1] + var_vec0[1]^2 * (re$YPwPY - re$trace_PW) / n))
   } else {
     re = get_AI_score(alpha.obj$Y, X, grm, alpha.obj$W, var_vec0, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
     var_vec[2] = max(0, as.numeric(var_vec0[2] + var_vec0[2]^2 * ((re$YPAPY - re$trace_P_grm)) / n)) # first fit vars
@@ -354,12 +355,14 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
     if (verbose) cat(paste("\ni", i))
     if (verbose) cat("\nIteration ", i, "tau is ", var_vec[2], "\n")
     if (write_log) put(paste(" Iteration ", i, "tau is: ", var_vec[2]), console = FALSE)
+    tol_limt = FALSE
     alpha0 = alpha.obj$alpha
     var_vec0 = var_vec
     eta0 = eta
     rss_0 = sum((y - mu)^2)
     t_begin_alpha = proc.time()
     alpha.obj = get_alpha(y, X, var_vec, grm, family, alpha0, eta0, offset, verbose = verbose, maxiter = maxiter, tol.coef = tol, write_log = write_log)
+    print(alpha.obj$alpha)
     t_end_get_alpha = proc.time()
     if (verbose) {
       cat("\ntime to get alpha\n")
@@ -399,11 +402,18 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
       put(paste("change in tau", abs(tau - tau0) / (abs(tau) + abs(tau0) + tol)), console = FALSE)
       put(paste("tau: ", tau), console = FALSE)
     }
+    #if(sum(res^2)/n < tol) break
     if (var_vec[1] <= 0) {
       stop("\nERROR! The first variance component parameter estimate is 0\n")
     }
+    
     if (var_vec[2] == 0) break
-    var_condition = max(abs(var_vec - var_vec0) / (abs(var_vec) + abs(var_vec0) + tol)) < tol # nolint
+    var_condition = max(abs(var_vec - var_vec0) / (abs(var_vec) + abs(var_vec0) + tol)) < tol 
+    if (var_vec[1] <= tol*10 & var_vec0[1] <= tol*10) {
+      tol_limt=TRUE
+      print("Warning! The first variance component parameter estimate is set at the tolarance breaking iterations")
+      break
+    }
     rss = sum(res^2)
     rss_condition = rss_0 - rss
     if (verbose) {
@@ -417,6 +427,7 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
 
     if (var_condition) break
     if (max(var_vec) > tol^(-2)) {
+      tol_limt = TRUE
       i = maxiter
       break
     }
@@ -425,19 +436,27 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
   if (verbose) cat("\nFinal ", var_vec, ":\n")
   if (write_log) put(paste("iter break at ", i), console = FALSE)
   if (write_log) put(paste("Final ", var_vec, ":"), console = FALSE)
-  if (max(var_vec) > tol^(-2)) {
+  if (max(var_vec) > tol^(-2) | i == maxiter) {
     cat("Model not converged")
     if (write_log) {
       put("Model not converged", console = FALSE)
     }
-    return(glm.fit0)
   }
-
   alpha.obj = get_alpha(y, X, var_vec, grm, family, alpha, eta, offset, verbose = verbose, maxiter = maxiter, tol.coef = tol, write_log = write_log)
+  print(alpha.obj$alpha)
   if (quant) {
-    fit.final = get_AI_score_quant(alpha.obj$Y, X, grm, alpha.obj$W, var_vec, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
-    var_vec[2] = max(0, var_vec0[2] + var_vec0[2]^2 * (fit.final$YPAPY - fit.final$trace_P_grm) / n)
-    var_vec[1] = max(0, var_vec0[1] + var_vec0[1]^2 * (fit.final$YPwPY - fit.final$trace_PW) / n)
+    if(tol_limt){
+      fit.final = get_AI_score_quant(alpha.obj$Y, X, grm, alpha.obj$W, var_vec, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
+      var_vec[2] = max(0, var_vec0[2] + var_vec0[2]^2 * (fit.final$YPAPY - fit.final$trace_P_grm) / n)
+      var_vec[1] = max(tol*10, var_vec0[1] + var_vec0[1]^2 * (fit.final$YPwPY - fit.final$trace_PW) / n)
+      i = maxiter
+      
+    }else{
+      fit.final = get_AI_score_quant(alpha.obj$Y, X, grm, alpha.obj$W, var_vec, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
+      var_vec[2] = max(0, var_vec0[2] + var_vec0[2]^2 * (fit.final$YPAPY - fit.final$trace_P_grm) / n)
+      var_vec[1] = max(tol*10, var_vec0[1] + var_vec0[1]^2 * (fit.final$YPwPY - fit.final$trace_PW) / n)
+    }
+    
   } else {
     fit.final = get_AI_score(alpha.obj$Y, X, grm, alpha.obj$W, var_vec, alpha.obj$sigmai_Y, alpha.obj$sigmai_X, alpha.obj$cov_var)
     var_vec[2] = max(0, as.numeric(var_vec0[2] + var_vec0[2]^2 * ((fit.final$YPAPY - fit.final$trace_P_grm)) / n)) # tau + Dtau 
@@ -635,15 +654,17 @@ simulate_tau_inner <- function(glm.fit0, grm, species_id = "s_id", tau0, phi0) {
   data_new_shuffled$sample_name = rownames(grm)
   refit0 = glm(formulate_to_fit, data = data_new_shuffled, family = family_to_fit)
   fit.glmm = tryCatch(fit_tau_test(refit0, grm, tau0 = tau0, phi0 = phi0, verbose = FALSE, species_id = species_id, log_file = NA), error = function(e) e)
-  if (!is.na(fit.glmm$t)) {
+  if (length(fit.glmm$t)>0) {
     t = sum(fit.glmm$b^2, na.rm = TRUE)/length(fit.glmm$sample_names)
     tau = fit.glmm$var_vec[2]
+    phi  = fit.glmm$var_vec[1]
   } else {
     print("error")
     tau = 0
     t = 0
+    phi = 0
   }
-  return(data.frame("tau" = tau, t))
+  return(data.frame("tau" = tau, t,phi))
 }
 
 #' run_tau_test

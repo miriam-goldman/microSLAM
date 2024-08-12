@@ -3,7 +3,7 @@ Type: Package
 Title: Microbiome Population Structure Leveraged Association Models
 Version: 0.0.1.0
 Authors@R: 
-  person( given ="Miriam",family ="Goldman",email ="miriam.goldman@ucsf.edu",role = c("aut","cre"))
+  person( given ="Miriam",family ="Goldman",email ="miriamagoldman@gmail.com",role = c("aut","cre"))
 Description: This package runs Microbiome Population Structure Leveraged Association Models using the Generalized Linear Mixed Model Approach.
 License: use_mit_license()
 Roxygen: list(markdown = TRUE)

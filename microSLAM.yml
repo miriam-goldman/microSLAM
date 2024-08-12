@@ -17,4 +17,3 @@ dependencies:
   - r-paralleldist
   - r-ape
   - r-devtools
-prefix: /Users/miriamgoldman/opt/miniconda3/envs/microSLAM
