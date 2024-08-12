@@ -7,7 +7,7 @@
 \method{summary}{pop.struct.glmm}(x, ...)
 }
 \arguments{
-\item{object}{a pop.struct.glmm objecct the output of fit_tau_test; GLMM of species with grm accounted for}
+\item{x}{a pop.struct.glmm objecct the output of fit_tau_test; GLMM of species with grm accounted for}
 }
 \description{
 Summarize the output of fit tau test

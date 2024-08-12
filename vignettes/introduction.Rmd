@@ -67,7 +67,7 @@ glm_fit0=glm("y ~ age  + 1", data = exp_metadata, family = "binomial")
 glmm_fit=fit_tau_test(glm_fit0, GRM, species_id="test", verbose = TRUE, log_file=NA)
 ```
 ```{r}
-summary(glmm_fit)
+summary.pop.struct.glmm(glmm_fit)
 ```
 
 ### test the significance of the tau that was fit
