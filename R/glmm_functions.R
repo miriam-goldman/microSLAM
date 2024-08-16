@@ -53,8 +53,9 @@ get_coef_inner <- function(Y, X, W, var_vec, grm) {
   # adapted from SAIGE package
   simga = gen_sigma(W, var_vec, grm) # V
   Y = as.vector(Y)
-  sigmai_Y = solve(simga, Y) # V^-1 Y
-  sigmai_X = solve(simga, X) # V^-1 X
+  sigmai = Rfast::spdinv(simga) 
+  sigmai_Y = sigmai %*% Y # V^-1 Y
+  sigmai_X = sigmai %*% X # V^-1 X
   cov_var = Matrix::solve(forceSymmetric(t(X) %*% sigmai_X), sparse = TRUE, tol = 1e-10) # (Xt V^-1 X)^-1
   sigmai_Xt = t(sigmai_X) # t(V^-1 X)
   sigmaiXtY = sigmai_Xt %*% Y # XtV^-1Y
@@ -71,8 +72,9 @@ get_AI_score <- function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_var) {
   ## Inputs Y, X, grm, W, Tau, sigmai_Y (sigma times inverse Y), sigmai_X (sigma times inverse X), cov_var
   # adapted from SAIGE package
   sigma = gen_sigma(W, var_vec, grm)
+  sigmai =  Rfast::spdinv(sigma)
   sigmai_Xt = t(sigmai_X) # transpose sigma inverse times X
-  P = solve(sigma) - sigmai_X %*% cov_var %*% sigmai_Xt # solve for P
+  P = sigmai - sigmai_X %*% cov_var %*% sigmai_Xt # solve for P
   PY1 = P %*% Y # \hat{Y}-\hat(X) (Xt V X)^-1 PY
   APY = grm %*% PY1 # grm (\hat{Y}-\hat(X) (Xt V X)^-1)
   YPAPY = t(PY1) %*% APY # dot product
@@ -93,8 +95,9 @@ get_AI_score_quant <- function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_va
   # adapted from SAIGE package
   n = length(W)
   sigma = gen_sigma(W, var_vec, grm)
+  sigmai = Rfast::spdinv(sigma)
   sigmai_Xt = t(sigmai_X) # transpose X
-  P = solve(sigma) - sigmai_X %*% cov_var %*% sigmai_Xt
+  P = sigmai - sigmai_X %*% cov_var %*% sigmai_Xt
   diag_P = diag(P) / (W)
   PY1 = P %*% Y # \hat{Y}-\hat(X) (Xt V X)^-1 PY
   wPY = PY1 / (W)
@@ -104,7 +107,7 @@ get_AI_score_quant <- function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_va
   YPAPY = t(PY1) %*% APY # dot product
   YPAPY = YPAPY[1] 
   PA = P %*% grm
-  trace_P_grm = (sum(solve(sigma) * grm) - sum(sigmai_X * crossprod(grm, t(cov_var %*% sigmai_Xt))))
+  trace_P_grm = (sum(sigmai * grm) - sum(sigmai_X * crossprod(grm, t(cov_var %*% sigmai_Xt))))
   trace_PW = sum(diag_P)
   score1 = YPAPY - trace_P_grm # score 1
   score0 = YPwPY - trace_PW # score 0 
@@ -115,7 +118,7 @@ get_AI_score_quant <- function(Y, X, grm, W, var_vec, sigmai_Y, sigmai_X, cov_va
   AI_00 = (t(PwPY) %*% wPY)
   AI_01 = (t(PAPY) %*% wPY)
   AI_mat = matrix(c(AI_00[1], AI_01[1], AI_01[1], AI_11[1]), 2, 2)
-  Dtau = solve(AI_mat, score_vector)
+  Dtau = Matrix::solve(AI_mat, score_vector)
   
   return(list(YPAPY = YPAPY, PY = PY1, YPwPY = YPwPY, trace_P_grm = trace_P_grm, trace_PW = trace_PW, AI = AI_mat, score_vector = score_vector))
 }
@@ -132,7 +135,7 @@ for_beta_bin <- function(mu, y, X) {
   res = as.vector(y - mu)
   XV = t(X * V)
   XVX = t(X) %*% (t(XV))
-  XVX_inv = solve(XVX)
+  XVX_inv = Matrix::solve(XVX)
   XXVX_inv = X %*% XVX_inv
   XVX_inv_XV = XXVX_inv * V
   S_a = colSums(X * res)
@@ -151,7 +154,7 @@ for_beta_quant <- function(mu, var_vec, y, X) {
   res = as.vector(y - mu)
   XV = t(X * V)
   XVX = t(X) %*% (t(XV))
-  XVX_inv = solve(XVX)
+  XVX_inv = Matrix::solve(XVX)
   XXVX_inv = X %*% XVX_inv
   XVX_inv_XV = XXVX_inv * V
   S_a = colSums(X * res)
@@ -180,7 +183,7 @@ fit_vars <- function(Y_vec, X_mat, grm, w_vec, var_vec, sigmai_Y, sigmai_X, cov_
     YPwPY = re.AI$YPwPY
     trace_PW = re.AI$trace_PW
     trace_P_grm = re.AI$trace_P_grm
-    Dtau = solve(re.AI$AI, re.AI$score_vector)
+    Dtau = Matrix::solve(re.AI$AI, re.AI$score_vector)
     var_vec0 = var_vec
     var_vec = var_vec0 + Dtau
     step = 1.0
@@ -217,7 +220,7 @@ get_alpha <- function(y, X, var_vec, grm, family, alpha0, eta0, offset, verbose 
     eta <- as.matrix(alpha.obj$eta + offset)
 
     if (verbose) {
-      cat("\n Tau:\n")
+      cat("\n Phi and Tau:\n")
       cat(var_vec)
       cat("\n Fixed-effect coefficients:\n")
       cat(alpha)

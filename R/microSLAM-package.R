@@ -21,6 +21,7 @@ NULL
 #' @importFrom stringr str_split
 #' @importFrom parallelDist parDist
 #' @importFrom pheatmap pheatmap
+#' @importFrom Rfast spdinv
 #' @import Matrix
 #' @importFrom pROC auc
 ## usethis namespace: end

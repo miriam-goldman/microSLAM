@@ -25,7 +25,8 @@ Imports:
 	RcppArmadillo,
 	Matrix,
 	RcppXPtrUtils,
-	pROC
+	pROC,
+	Rfast
 Suggests: 
     knitr,
     rmarkdown
