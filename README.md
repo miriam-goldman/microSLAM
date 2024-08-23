@@ -123,7 +123,10 @@ In this case, the observed $\tau$ value (red vertical line) is larger than all $
 Code to plot pvalues:
 
 ```
-ggplot(tautestfit,aes(t))+geom_histogram(bins = 30)+geom_vline(xintercept = glmm_fit$t,color ="red")+theme_minimal(base_size = 16)
+ggplot(tautestfit,aes(t))+
+geom_histogram(bins = 30)+
+geom_vline(xintercept = glmm_fit$t,color ="red")+
+theme_minimal(base_size = 16)
 ```
 
 ### Step 3: $\beta$ test for gene-trait associations
