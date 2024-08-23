@@ -31,10 +31,12 @@ library(DT)
 
 ```{r setup}
 library(microSLAM)
-exp_metadata = read.csv("../example_data/exp_metadata.csv")
+
 ### read in example metadata
-exp_genedata = read.csv("../example_data/genepresabs.csv") 
+data("exp_metadata")
+
 ### read in example gene data
+data("exp_genedata")
 ### look at the data
 datatable(head(exp_genedata[1:10,1:10]))
 datatable(head(exp_metadata))
@@ -51,7 +53,6 @@ datatable(round(head(GRM[1:10,1:10]),2))
 ### visualize the GRM  
 
 ```{r pheatmap, echo=FALSE, fig.height=6, fig.width=8}
-rownames(exp_metadata)=rownames(GRM)
 pheatmap(GRM,show_rownames=FALSE,show_colnames=FALSE,treeheight_row=0,treeheight_col = 0,labels_row="samples",labels_col="samples",
                     main=paste("GRM"),border_color=NA,annotation_row = exp_metadata[,-5],color=myColor,clustering_distance_rows=as.dist(1-GRM),clustering_distance_col=as.dist(1-GRM),clustering_method="average")
 ```

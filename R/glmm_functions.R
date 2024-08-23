@@ -54,6 +54,10 @@ get_coef_inner <- function(Y, X, W, var_vec, grm) {
   simga = gen_sigma(W, var_vec, grm) # V
   Y = as.vector(Y)
   sigmai = Rfast::spdinv(simga) 
+  if(all(is.na(sigmai))){
+    print("While fitting Sigma, a transformation of the GRM became singular or was not symmetrical, this can happen when many columns of the GRM are highly correlated to the y, or when there is not enough varaiblity in the GRM.")
+    stop()
+  }
   sigmai_Y = sigmai %*% Y # V^-1 Y
   sigmai_X = sigmai %*% X # V^-1 X
   cov_var = Matrix::solve(forceSymmetric(t(X) %*% sigmai_X), sparse = TRUE, tol = 1e-10) # (Xt V^-1 X)^-1
