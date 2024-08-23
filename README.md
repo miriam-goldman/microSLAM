@@ -34,9 +34,9 @@ Users will read in gene data from a file and metadata from a second file, both i
 ```
 library(tidyverse)
 library(magrittr)
-exp_genedata = read.csv("../example_data/genepresabs.csv") ### read in example gene data
+data("exp_genedata") ### read in example gene data
 ## gene data is a number of samples by number of genes matrix for one species
-exp_metadata = read.csv("../example_data/exp_metadata.csv") ### read in example metadata
+data("exp_metadata") ### read in example metadata
 ## metadata is a number of samples (same as gene data) by k (number of covariates + 1) matrix
 ```
 
@@ -54,6 +54,23 @@ Example of GRM:
 This gene data was generated with a strain (defined by a subset of correlated genes) that is associated with y in half of the samples and another strain that is not associated with y. In addition, three genes were simulated to be more related to y than is either strain.
 
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/exampleGRM.png" width=600>
+
+For plotting GRM follow this code:
+
+```
+library(pheatmap)
+myColor <- colorRampPalette(c("#FFFFFF","#009E73"))(50)
+pheatmap(GRM,show_rownames=FALSE,show_colnames=FALSE,
+    treeheight_row=0,treeheight_col = 0,
+    labels_row="samples",labels_col="samples",
+    main=paste("GRM"),
+    border_color=NA,
+    annotation_row = exp_metadata[,-5],
+    color=myColor,
+    clustering_distance_rows=as.dist(1-GRM),
+    clustering_distance_col=as.dist(1-GRM),
+    clustering_method="average")
+```
 
 ### Step 2: Perform $\tau$ test for population structure (strain-trait associations)
 Fit a baseline generalized linear model (glm) with only the covariate and an intercept, to obtain starting parameter estimates for the tau test. The family for the glm is binomial because y is binary.
@@ -102,6 +119,15 @@ pvalue = (sum(tautestfit$t >= glmm_fit$t) + 1)/n_tau
 <img src="https://github.com/miriam-goldman/microSLAM/blob/main/other/permutationnew.png" with=400>
 
 In this case, the observed $\tau$ value (red vertical line) is larger than all $\tau$ values from 100 permutations that break the association between population structure and y (histogram shows permutation null distribution). This indicates that there is significant population structure for this species that is associated with y. To get a more precise p-value, more permutations could be run.  
+
+Code to plot pvalues:
+
+```
+ggplot(tautestfit,aes(t))+
+geom_histogram(bins = 30)+
+geom_vline(xintercept = glmm_fit$t,color ="red")+
+theme_minimal(base_size = 16)
+```
 
 ### Step 3: $\beta$ test for gene-trait associations
 
