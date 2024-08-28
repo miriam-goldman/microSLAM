@@ -21,6 +21,7 @@
 #' @return grm genetic relatedness matrix for tau and beta test
 #' @export
 calculate_grm <- function(gene_matrix) {
+  check_gene_matrix(gene_matrix)
   freq_mat_dist_man = parDist(as.matrix(gene_matrix[, -1]), method = "manhattan") / (ncol(gene_matrix[, -1]) - 1)
   freq_mat_dist_man = as.matrix(freq_mat_dist_man)
   freq_mat_grm_man = 1 - freq_mat_dist_man
@@ -29,6 +30,19 @@ calculate_grm <- function(gene_matrix) {
   rownames(grm) = colnames(grm)
   return(grm)
 }
+
+check_gene_matrix <- function(gene_matrix) {
+ if(!colnames(gene_matrix)[1] == "sample_name"){
+   warning("first column in gene matrix is not sample_name this might cause unexpected behavior")
+ }
+  if((ncol(gene_matrix)) < nrow(gene_matrix)){
+    stop("gene matrix is not the expected dimensions, gene matrix should be a gene X sample matrix with more genes than samples")
+  }
+  if(!is.data.frame(gene_matrix)){
+    warning("gene_matrix is not a data frame, could cause unexpected behavior")
+  }
+}
+
 
 gen_sigma <- function(W, var_vec, grm) {
   ### update grm with W and var_vec
@@ -288,32 +302,7 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
     put("begining time ", console = FALSE)
     put(t_begin, console = FALSE)
   }
-  if ("sample_name" %in% colnames(glm.fit0$data)) {
-    if (verbose) {
-      cat("\nchecking sample names of grm and glm fit match\n")
-    }
-    if (write_log) {
-      put("checking sample names of grm and glm fit match ", console = FALSE)
-    }
-    if (!all(glm.fit0$data$sample_name == rownames(grm))) {
-      stop("\nERROR! the sample names for glm and grm do not match")
-    } else {
-      if (verbose) {
-        cat("check complete")
-      }
-      if (write_log) {
-        put("check complete ", console = FALSE)
-      }
-    }
-  } else {
-    if (verbose) {
-      cat("\nWarning! not running check on sample names ensure grm sample order and glm fit sample order match! Will only check if data from glm has column named sample_name\n")
-    }
-    if (write_log) {
-      put("Warning! not running check on sample names ensure grm sample order and glm fit sample order match!", console = FALSE)
-    }
-  }
-
+  check_inputs_tau(glm.fit0, grm, species_id, tau0, phi0, maxiter, tol, verbose, write_log, log_file)
   y = glm.fit0$y
   n = length(y)
   X = model.matrix(glm.fit0)
@@ -546,6 +535,114 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
   return(glmm_result)
 }
 
+check_grm <- function(grm,glm.fit0,verbose){
+  if(!is.matrix(grm)){
+    stop("grm is expected to be a matrix")
+  }
+  if(nrow(grm) != ncol(grm)){
+    stop("grm is expected to be a NxN matrix, with N as the number of samples")
+  }
+  if(!all(colnames(grm) == rownames(grm))){
+    warning("column names do not match row names, grm should be a sample by sample matrix")
+  }
+  if(class(glm.fit0)[1] != "glm"){
+    stop("Expected a glm object for glm.fit0, Example: glm_fit0=glm(`y ~ age  + 1`, data = exp_metadata, family = `binomial`)")
+  }
+  if(nrow(glm.fit0$data) != nrow(grm)){
+    stop("number of samples from baseline glm does not match number of samples from grm, these must match")
+  }
+  if ("sample_name" %in% colnames(glm.fit0$data)) {
+    if (verbose) {
+      cat("\nchecking sample names of grm and glm fit match\n")
+    }
+    if (!all(glm.fit0$data$sample_name == rownames(grm))) {
+      stop("\nERROR! the sample names for glm and grm do not match")
+    } else {
+      if (verbose) {
+        cat("check complete")
+      }
+    }
+  } else {
+    warning("not running check on sample names ensure grm sample order and glm fit sample order match! Will only check if data from glm has column named sample_name")
+  }
+  
+}
+
+check_inputs_tau <- function(glm.fit0,grm,species_id,tau0,phi0,maxiter,tol,verbose,write_log,log_file){
+  if(!is.logical(verbose)){
+    stop("verbose should be a logical")
+  }
+  if(write_log){
+    if(!file_test("-x",log_file)){
+      warning("log file is not writing to a file, check path, running without log file")
+      write_log = FALSE
+    }
+  }
+  if(!is.numeric(tol)){
+    stop("tolarance should be numeric")
+  }
+  if(tol>.01){
+    warning("tolarance is usually smaller than .01")
+  }
+  if(!is.numeric(maxiter)){
+    stop("maxiter should be numeric")
+  }
+  if(maxiter<3){
+    warning("maxiter is usually larger than 3")
+  }
+  if(maxiter>100){
+    warning("large maxiter, might take a long time to converge")
+  }
+  if(!is.numeric(tau0)){
+    stop("tau0 must be numeric")
+  }
+  if(!is.numeric(phi0)){
+    stop("phi0 must be numeric")
+  }
+  if(tau0 <= 0 | phi0 <= 0){
+    stop("tau0 and phi0 must be a postive number")
+  }
+  check_grm(grm,glm.fit0,verbose)
+  
+}
+
+check_beta <- function(pop.struct.glmm,
+                       glm.fit0, grm,
+                       gene_df, SPA = FALSE){
+  if(!is.logical(SPA)){
+    stop("SPA should be a logical")
+  }
+  if(!(class(pop.struct.glmm)=="pop.struct.glmm")){
+    stop("pop.struct.glmm should be an output of fit_tau_test")
+  }
+  if(all(pop.struct.glmm$y != glm.fit0$y)){
+    warning("y for pop.struct.glmm does not match y for glm.fit0, if this is not intentional double check data.")
+  }
+  if(!is.data.frame(gene_df)){
+    stop("gene_df is expected to be a data frame")
+  }
+  if(!any("gene_id" == colnames(gene_df))){
+    stop("Expected column named gene_id, please use a gene_df with a column named gene_id")
+  }
+  
+  if(!any("sample_name" == colnames(gene_df))){
+    stop("Expected column named sample_name, please use a gene_df with a column named sample_name with sample names")
+  }
+  if(!any("gene_value" == colnames(gene_df))){
+    stop("Expected column named gene_value, please use a gene_df with a column named gene_value with gene value")
+  }
+  sample_genes = unique(gene_df$gene_id)
+  one_gene =  gene_df[which(gene_df$gene_id == sample_genes[1]),]
+  if(!all(one_gene$sample_name == pop.struct.glmm$sample_names)){
+    warning("sample names for gene_df do not match sample names for  pop.struct.glmm, if this is not intentional double check data for order of samples and number of samples.")
+  }
+  
+  if(ncol(gene_df)>3){
+    warning("expected stacked data frame of 3 columns, gene_id, sample_name, gene_value, data frame has more than 3 columns, check that data frame is stacked.")
+  }
+  
+}
+
 #' fit_beta
 #'
 #' Fit a beta for each genes including the population structure model with the random effects
@@ -572,7 +669,8 @@ fit_beta <- function(pop.struct.glmm,
   # adapted from SAIGE package
   t_begin = proc.time()
   list_vec=NULL
-
+  check_grm(grm,glm.fit0,verbose = TRUE)
+  check_beta(pop.struct.glmm, glm.fit0, grm, gene_df, SPA)
   forbeta.obj = pop.struct.glmm$forbeta.obj
   family = glm.fit0$family
 

@@ -53,6 +53,8 @@ datatable(round(head(GRM[1:10,1:10]),2))
 ### visualize the GRM  
 
 ```{r pheatmap, echo=FALSE, fig.height=6, fig.width=8}
+library(pheatmap)
+myColor <- colorRampPalette(c("#FFFFFF","#009E73"))(50)
 pheatmap(GRM,show_rownames=FALSE,show_colnames=FALSE,treeheight_row=0,treeheight_col = 0,labels_row="samples",labels_col="samples",
                     main=paste("GRM"),border_color=NA,annotation_row = exp_metadata[,-5],color=myColor,clustering_distance_rows=as.dist(1-GRM),clustering_distance_col=as.dist(1-GRM),clustering_method="average")
 ```
