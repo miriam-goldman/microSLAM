@@ -32,6 +32,8 @@ calculate_grm <- function(gene_matrix) {
 }
 
 check_gene_matrix <- function(gene_matrix) {
+  ### function to check gene matrix is as expected for creation of GRM"
+  # gene_matrix NxM+1  matrix with column sample_name, N is number of samples, M is number of genes
  if(!colnames(gene_matrix)[1] == "sample_name"){
    warning("first column in gene matrix is not sample_name this might cause unexpected behavior")
  }
@@ -536,6 +538,9 @@ fit_tau_test <- function(glm.fit0, grm, species_id, tau0 = 1, phi0= 1, maxiter =
 }
 
 check_grm <- function(grm,glm.fit0,verbose){
+  ### function to check grm and glm.fit0 that they are the expected inputs
+  # grm, NxN matrix
+  # glm.fit0, output from glm, baseline glm
   if(!is.matrix(grm)){
     stop("grm is expected to be a matrix")
   }
@@ -569,6 +574,17 @@ check_grm <- function(grm,glm.fit0,verbose){
 }
 
 check_inputs_tau <- function(glm.fit0,grm,species_id,tau0,phi0,maxiter,tol,verbose,write_log,log_file){
+  ## check inputs are as expected for tau test
+  # glm.fit0 baseline glm from glm function
+  # grm output from create_grm or NxN matrix
+  # species_id id to denote species
+  # tau0 numeric > 0 
+  # phi0 numeric > 0 
+  # maxiter maximum iterations
+  # tol tolarnce for fitting usually <1
+  # verbose whether to write updates as fitting occurs
+  # write_log whether to write log file
+  # log_file location to write log file
   if(!is.logical(verbose)){
     stop("verbose should be a logical")
   }
@@ -609,6 +625,11 @@ check_inputs_tau <- function(glm.fit0,grm,species_id,tau0,phi0,maxiter,tol,verbo
 check_beta <- function(pop.struct.glmm,
                        glm.fit0, grm,
                        gene_df, SPA = FALSE){
+  ## check inputs for beta test for expected input
+  # pop.struct.glmm output from tau test
+  # glm.fit0 baseline glm from glm function
+  # grm output from create_grm or NxN matrix
+  # gene_df dataframe of gene_id, sample_name, and gene_value
   if(!is.logical(SPA)){
     stop("SPA should be a logical")
   }
