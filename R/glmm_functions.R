@@ -37,8 +37,20 @@ check_gene_matrix <- function(gene_matrix) {
  if(!colnames(gene_matrix)[1] == "sample_name"){
    warning("first column in gene matrix is not sample_name this might cause unexpected behavior")
  }
-  if((ncol(gene_matrix)) < nrow(gene_matrix)){
-    stop("gene matrix is not the expected dimensions, gene matrix should be a gene X sample matrix with more genes than samples")
+  if(typeof(gene_matrix[,1]) != "character"){
+    warning("first column in gene matrix is expected to be sample_name, if this is not the sample name and is a value of a gene, this will not be included in the computation.")
+  }
+  if(any(is.duplicated(gene_matrix[,1]))){
+    stop("gene matrix should not have any duplicated sample names, sample names should be unique.")
+  }
+  if(any(is.na(gene_matrix[,1]))){
+    stop("gene matrix should not have any NA sample names, sample names should be unique.")
+  }
+  if(!all(apply(gene_matrix[,-1],2,function(x) all(!is.na(as.numeric(x)))))){
+    stop("all columns besides the first column should be numeric")
+  }
+  if((ncol(gene_matrix)) < 3 | ncol(gene_matrix) < nrow(gene_matrix)){
+    warning("gene matrix does not have as many columns as rows, gene matrix should be a gene X sample matrix, if there are not many genes, the GRM will less precise.")
   }
   if(!is.data.frame(gene_matrix)){
     warning("gene_matrix is not a data frame, could cause unexpected behavior")
