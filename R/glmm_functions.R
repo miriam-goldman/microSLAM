@@ -40,7 +40,7 @@ check_gene_matrix <- function(gene_matrix) {
   if(typeof(gene_matrix[,1]) != "character"){
     warning("first column in gene matrix is expected to be sample_name, if this is not the sample name and is a value of a gene, this will not be included in the computation.")
   }
-  if(any(is.duplicated(gene_matrix[,1]))){
+  if(any(duplicated(gene_matrix[,1]))){
     stop("gene matrix should not have any duplicated sample names, sample names should be unique.")
   }
   if(any(is.na(gene_matrix[,1]))){
