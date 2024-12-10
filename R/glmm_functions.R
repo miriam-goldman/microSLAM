@@ -556,6 +556,9 @@ check_grm <- function(grm,glm.fit0,verbose){
   if(!is.matrix(grm)){
     stop("grm is expected to be a matrix")
   }
+  if(!is.numeric(grm) |  any(is.na(grm))){
+    stop("grm is expected to have all numeric values")
+  }
   if(nrow(grm) != ncol(grm)){
     stop("grm is expected to be a NxN matrix, with N as the number of samples")
   }
@@ -879,7 +882,7 @@ saddle_prob <- function(q, mu, g, var1, cutoff = 2, log.p = FALSE) {
   } else {
     out_uni1 = get_root_K1(0, mu = mu, g = g, q = q)
     out_uni2 = get_root_K1(0, mu = mu, g = g, q = qinv)
-    if (out_uni1$converged == TRUE && out_uni2$converged == TRUE) {
+    if (out_uni1$converged == TRUE && out_uni2$converged == TRUE && converged == TRUE) {
       p1 = tryCatch(get_saddle_prob(out_uni1$root, mu, g, q, log.p = log.p), error = function(e) {
         if (log.p) {
           return(pval_noadj - log(2))
